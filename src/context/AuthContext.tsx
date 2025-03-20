@@ -1,7 +1,6 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from '@/components/ui/sonner';
+import { toast } from 'sonner';
 
 interface User {
   id: string;
@@ -24,7 +23,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Mock users for demonstration
 const MOCK_USERS = [
   {
     id: '1',
@@ -54,7 +52,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  // Check for saved user on initial load
   useEffect(() => {
     const savedUser = localStorage.getItem('dms_user');
     if (savedUser) {
@@ -73,10 +70,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setError(null);
     
     try {
-      // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Find user in mock data
       const foundUser = MOCK_USERS.find(
         u => u.email === email && u.password === password
       );
@@ -85,20 +80,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('Invalid credentials');
       }
       
-      // Create user object without password
       const { password: _, ...userWithoutPassword } = foundUser;
       
-      // Save to state
       setUser(userWithoutPassword);
       
-      // Save to localStorage if remember me is checked
       if (rememberMe) {
         localStorage.setItem('dms_user', JSON.stringify(userWithoutPassword));
       }
       
       toast.success(`Welcome back, ${userWithoutPassword.name}!`);
       
-      // Redirect based on role
       if (userWithoutPassword.role === 'admin') {
         navigate('/admin/dashboard');
       } else {
