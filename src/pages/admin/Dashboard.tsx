@@ -11,12 +11,17 @@ import {
   SettingsIcon,
   DatabaseIcon,
   AlertCircleIcon,
-  CheckCircleIcon
+  CheckCircleIcon,
+  FileCheckIcon,
+  ClockIcon,
+  EyeIcon,
+  UserX2Icon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useAuth } from '@/context/AuthContext';
 
 // Mock statistics
@@ -80,6 +85,22 @@ const securityAlerts = [
   },
 ];
 
+// Mock login attempts
+const loginAttempts = [
+  { id: 1, user: 'sarah.johnson@example.com', status: 'success', location: 'New York, USA', device: 'Windows 10 - Chrome', time: '10 minutes ago', ip: '203.45.67.89' },
+  { id: 2, user: 'unknown', status: 'failed', location: 'Beijing, China', device: 'Linux - Firefox', time: '15 minutes ago', ip: '118.76.45.23', attempts: 3 },
+  { id: 3, user: 'mike.wilson@example.com', status: 'success', location: 'London, UK', device: 'MacOS - Safari', time: '22 minutes ago', ip: '84.23.67.105' },
+  { id: 4, user: 'unknown', status: 'failed', location: 'Moscow, Russia', device: 'Android - Chrome Mobile', time: '45 minutes ago', ip: '176.32.45.67', attempts: 5 },
+];
+
+// Mock pending documents
+const pendingDocuments = [
+  { id: 'DOC-2023-04567', title: 'Q4 Financial Report', submitter: 'Jennifer Lee', department: 'Finance', submitted: '2 hours ago', priority: 'high' },
+  { id: 'DOC-2023-04568', title: 'Marketing Campaign Proposal', submitter: 'David Chen', department: 'Marketing', submitted: '4 hours ago', priority: 'medium' },
+  { id: 'DOC-2023-04569', title: 'Employee Handbook Update', submitter: 'Rachel Kim', department: 'HR', submitted: '1 day ago', priority: 'low' },
+  { id: 'DOC-2023-04570', title: 'Product Roadmap 2023', submitter: 'Alex Johnson', department: 'Product', submitted: '2 days ago', priority: 'medium' },
+];
+
 // Mock department storage usage
 const departmentUsage = [
   { department: 'Marketing', used: 215, total: 500, percentage: 43 },
@@ -126,6 +147,114 @@ const AdminDashboard: React.FC = () => {
             </CardContent>
           </Card>
         ))}
+      </div>
+      
+      {/* Security Monitoring and Pending Documents */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Login Monitoring */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>Login Activity Monitoring</CardTitle>
+              <CardDescription>Recent login attempts and suspicious activities</CardDescription>
+            </div>
+            <Badge variant="outline" className="bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200">
+              2 Suspicious Activities
+            </Badge>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {loginAttempts.map((attempt) => (
+                <div key={attempt.id} className="p-4 rounded-lg border">
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center">
+                      {attempt.status === 'success' ? (
+                        <CheckCircleIcon className="h-5 w-5 text-emerald-500 mr-2" />
+                      ) : (
+                        <UserX2Icon className="h-5 w-5 text-red-500 mr-2" />
+                      )}
+                      <div>
+                        <span className="font-medium">{attempt.user}</span>
+                        <p className="text-xs text-muted-foreground">
+                          {attempt.ip} • {attempt.location} • {attempt.device}
+                        </p>
+                      </div>
+                    </div>
+                    <Badge variant={attempt.status === 'success' ? 'outline' : 'destructive'}>
+                      {attempt.status === 'success' ? 'Successful' : `Failed (${attempt.attempts} attempts)`}
+                    </Badge>
+                  </div>
+                  <div className="flex justify-between items-center mt-2">
+                    <p className="text-xs text-muted-foreground">{attempt.time}</p>
+                    {attempt.status === 'failed' && (
+                      <div className="flex space-x-2">
+                        <Button size="sm" variant="ghost">Ignore</Button>
+                        <Button size="sm" variant="default">Investigate</Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 flex justify-end">
+              <Button variant="outline" size="sm">
+                <EyeIcon className="mr-2 h-4 w-4" />
+                View All Login Attempts
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+        
+        {/* Documents Awaiting Approval */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>Documents Awaiting Approval</CardTitle>
+              <CardDescription>Documents pending review and approval</CardDescription>
+            </div>
+            <Badge variant="outline" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+              {pendingDocuments.length} Pending
+            </Badge>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {pendingDocuments.map((doc) => (
+                <div key={doc.id} className="p-4 rounded-lg border">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-2">
+                    <div>
+                      <div className="flex items-center">
+                        <ClockIcon className="h-5 w-5 text-blue-500 mr-2" />
+                        <span className="font-medium">{doc.title}</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {doc.id} • Submitted by {doc.submitter} • {doc.department}
+                      </p>
+                    </div>
+                    <Badge 
+                      className={`mt-2 sm:mt-0 ${
+                        doc.priority === 'high' ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' : 
+                        doc.priority === 'medium' ? 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200' : 
+                        'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                      }`}
+                    >
+                      {doc.priority} priority
+                    </Badge>
+                  </div>
+                  <div className="flex justify-between items-center mt-2">
+                    <p className="text-xs text-muted-foreground">Submitted {doc.submitted}</p>
+                    <div className="flex space-x-2">
+                      <Button size="sm" variant="outline">Reject</Button>
+                      <Button size="sm" variant="default">
+                        <FileCheckIcon className="mr-2 h-4 w-4" />
+                        Approve
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
