@@ -1,7 +1,7 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { useTheme } from '@/context/ThemeContext';
 import { 
   BellIcon, 
   FileText, 
@@ -16,7 +16,9 @@ import {
   HistoryIcon, 
   PieChartIcon,
   MenuIcon,
-  XIcon
+  XIcon,
+  SunIcon,
+  MoonIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -25,6 +27,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 
 interface SidebarItemProps {
   icon: React.ElementType;
@@ -68,9 +71,28 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
 
 export const MainLayout: React.FC = () => {
   const { user, logout } = useAuth();
+  const { theme, setTheme } = useTheme();
   const location = useLocation();
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
+  const [isScrolled, setIsScrolled] = useState(false);
+  
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+  
+  useEffect(() => {
+    if (isMobile) {
+      setSidebarOpen(false);
+    } else {
+      setSidebarOpen(true);
+    }
+  }, [location.pathname, isMobile]);
   
   if (!user) return null;
   
@@ -80,25 +102,37 @@ export const MainLayout: React.FC = () => {
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
+
+  const toggleTheme = () => {
+    localStorage.setItem("dms-theme-manual", "true");
+    setTheme(theme === 'light' ? 'dark' : 'light');
+  };
   
   return (
-    <div className="min-h-screen flex bg-dms-neutral-50">
-      {/* Sidebar */}
+    <div className="min-h-screen flex bg-background">
+      {isMobile && sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40"
+          onClick={toggleSidebar}
+        />
+      )}
+      
       <aside 
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-sidebar transition-transform duration-300 ease-in-out ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } md:relative md:translate-x-0`}
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 w-64 bg-sidebar transition-transform duration-300 ease-in-out md:sticky md:top-0 h-full",
+          sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
+          "flex-shrink-0"
+        )}
       >
-        <div className="flex flex-col h-full">
-          {/* Sidebar Header */}
+        <div className="flex flex-col h-full overflow-hidden">
           <div className="p-4 flex items-center justify-between">
             <Logo />
             {isMobile && (
               <Button 
                 variant="ghost" 
                 size="icon" 
-                onClick={toggleSidebar} 
-                className="text-sidebar-foreground"
+                onClick={toggleSidebar}
+                className="text-sidebar-foreground md:hidden"
               >
                 <XIcon className="h-5 w-5" />
               </Button>
@@ -107,7 +141,6 @@ export const MainLayout: React.FC = () => {
           
           <Separator className="border-sidebar-border" />
           
-          {/* Navigation Items */}
           <div className="flex-1 py-2 overflow-y-auto">
             <div className="px-3 py-2">
               <h3 className="text-xs font-medium text-sidebar-foreground/70 uppercase tracking-wider px-2">
@@ -218,8 +251,23 @@ export const MainLayout: React.FC = () => {
             </div>
           </div>
           
-          {/* User section */}
           <div className="p-4 border-t border-sidebar-border">
+            <div className="flex items-center space-x-2 mb-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={toggleTheme}
+                className="w-full text-sidebar-foreground bg-sidebar-accent hover:bg-sidebar-primary"
+              >
+                {theme === 'light' ? (
+                  <MoonIcon className="h-4 w-4 mr-2" />
+                ) : (
+                  <SunIcon className="h-4 w-4 mr-2" />
+                )}
+                {theme === 'light' ? 'Dark Mode' : 'Light Mode'}
+              </Button>
+            </div>
+            
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <Avatar className="h-8 w-8 border border-sidebar-border">
@@ -229,10 +277,10 @@ export const MainLayout: React.FC = () => {
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="text-sm font-medium text-sidebar-foreground truncate w-32">
+                  <p className="text-sm font-medium text-sidebar-foreground truncate max-w-[100px] sm:max-w-[120px]">
                     {user.name}
                   </p>
-                  <p className="text-xs text-sidebar-foreground/70 truncate w-32">
+                  <p className="text-xs text-sidebar-foreground/70 truncate max-w-[100px] sm:max-w-[120px]">
                     {user.role === 'admin' ? 'Administrator' : user.department}
                   </p>
                 </div>
@@ -257,33 +305,35 @@ export const MainLayout: React.FC = () => {
         </div>
       </aside>
       
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
-        {/* Top Header Bar */}
-        <header className="h-16 border-b bg-white shadow-sm flex items-center justify-between px-4">
+      <div className="flex-1 flex flex-col min-h-screen w-full overflow-hidden">
+        <header className={cn(
+          "h-16 z-30 border-b transition-all duration-200 flex items-center justify-between px-4",
+          "bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60",
+          isScrolled && "sticky top-0 shadow-sm"
+        )}>
           <div className="flex items-center space-x-4">
             {isMobile && (
               <Button 
                 variant="ghost" 
                 size="icon" 
                 onClick={toggleSidebar}
-                className={`${sidebarOpen ? 'hidden' : 'block'} md:hidden`}
+                className="md:hidden"
               >
                 <MenuIcon className="h-5 w-5" />
               </Button>
             )}
-            <div className="relative w-64">
+            <div className="relative w-full max-w-md">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-4 w-4 text-gray-400" />
+                <Search className="h-4 w-4 text-muted-foreground" />
               </div>
               <input
                 type="search"
                 placeholder="Search documents..."
-                className="pl-10 py-2 pr-4 block w-full rounded-md border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="pl-10 py-2 pr-4 block w-full rounded-md border border-input text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-background"
               />
             </div>
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button variant="ghost" size="icon" className="relative">
@@ -308,8 +358,7 @@ export const MainLayout: React.FC = () => {
           </div>
         </header>
         
-        {/* Main Content Area */}
-        <main className="flex-1 overflow-auto bg-gray-50 p-6 animate-fade-in">
+        <main className="flex-1 overflow-auto p-4 sm:p-6 animate-fade-in">
           <Outlet />
         </main>
       </div>

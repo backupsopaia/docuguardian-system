@@ -1,4 +1,3 @@
-
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
@@ -92,15 +91,20 @@
     @apply border-border;
   }
 
+  html {
+    @apply scroll-smooth;
+  }
+
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 }
 
 @layer components {
   .glassmorphism {
-    @apply bg-white/20 backdrop-blur-md border border-white/30 shadow-lg;
+    @apply bg-white/20 dark:bg-black/20 backdrop-blur-md border border-white/30 dark:border-white/10 shadow-lg;
   }
   
   .card-hover {
@@ -123,16 +127,15 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  @apply bg-transparent dark:bg-transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: hsl(var(--muted-foreground) / 0.3);
-  border-radius: 3px;
+  @apply bg-muted-foreground/30 dark:bg-muted-foreground/20 rounded-full;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground) / 0.5);
+  @apply bg-muted-foreground/50 dark:bg-muted-foreground/40;
 }
 
 /* Animations */
@@ -170,4 +173,24 @@
   opacity: 0;
   transform: translateY(10px);
   transition: opacity 300ms, transform 300ms;
+}
+
+/* Dark mode transition */
+:root {
+  --transition-duration: 0.3s;
+}
+
+.dark-mode-transition {
+  transition: background-color var(--transition-duration) ease,
+              color var(--transition-duration) ease,
+              border-color var(--transition-duration) ease,
+              box-shadow var(--transition-duration) ease;
+}
+
+html {
+  transition: color-scheme 0.3s ease;
+}
+
+html.dark {
+  color-scheme: dark;
 }

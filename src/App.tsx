@@ -5,12 +5,14 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
+import { ThemeProvider } from "./context/ThemeContext";
 import { useAuth } from "./context/AuthContext";
 
 // Pages
 import Login from "./pages/Login";
 import UserDashboard from "./pages/user/Dashboard";
 import AdminDashboard from "./pages/admin/Dashboard";
+import StoragePage from "./pages/user/Storage";
 import NotFound from "./pages/NotFound";
 
 // Layouts
@@ -82,7 +84,7 @@ const AppRoutes = () => (
       <Route path="documents" element={<div>My Documents Page</div>} />
       <Route path="shared" element={<div>Shared With Me Page</div>} />
       <Route path="recent" element={<div>Recent Activity Page</div>} />
-      <Route path="storage" element={<div>Storage Page</div>} />
+      <Route path="storage" element={<StoragePage />} />
     </Route>
     
     {/* Admin routes */}
@@ -102,7 +104,7 @@ const AppRoutes = () => (
       <Route path="security" element={<div>Security Settings Page</div>} />
       <Route path="departments" element={<div>Departments Page</div>} />
       <Route path="audit" element={<div>Audit Logs Page</div>} />
-      <Route path="storage" element={<div>Storage Management Page</div>} />
+      <Route path="storage" element={<StoragePage />} />
       <Route path="reports" element={<div>Reports Page</div>} />
     </Route>
     
@@ -115,11 +117,13 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <BrowserRouter>
-        <AuthProvider>
-          <AppRoutes />
-          <Toaster />
-          <Sonner />
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <AppRoutes />
+            <Toaster />
+            <Sonner />
+          </AuthProvider>
+        </ThemeProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
