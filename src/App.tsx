@@ -14,6 +14,9 @@ import AdminDashboard from "./pages/admin/Dashboard";
 import StoragePage from "./pages/user/Storage";
 import NotFound from "./pages/NotFound";
 
+// Admin components
+import UserManagement from "./modules/admin/users/components/UserManagement";
+
 // Layouts
 import MainLayout from "./components/layouts/MainLayout";
 
@@ -99,7 +102,7 @@ const AppRoutes = () => (
       <Route path="dashboard" element={<AdminDashboard />} />
       {/* Add other admin routes */}
       <Route path="documents" element={<div>Admin Documents Page</div>} />
-      <Route path="users" element={<div>Users & Roles Page</div>} />
+      <Route path="users" element={<UserManagement />} />
       <Route path="security" element={<div>Security Settings Page</div>} />
       <Route path="departments" element={<div>Departments Page</div>} />
       <Route path="audit" element={<div>Audit Logs Page</div>} />

@@ -2,6 +2,12 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface SidebarItemProps {
   icon: React.ElementType;
@@ -10,6 +16,7 @@ interface SidebarItemProps {
   active?: boolean;
   onClick?: () => void;
   badge?: string | number;
+  tooltip?: string;
 }
 
 const SidebarItem: React.FC<SidebarItemProps> = ({ 
@@ -18,7 +25,8 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
   to, 
   active = false, 
   onClick,
-  badge
+  badge,
+  tooltip
 }) => {
   const navigate = useNavigate();
   
@@ -27,7 +35,7 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
     if (onClick) onClick();
   };
   
-  return (
+  const buttonContent = (
     <button
       className={`dms-sidebar-item ${active ? 'dms-sidebar-item-active' : ''}`}
       onClick={handleClick}
@@ -41,6 +49,23 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
       )}
     </button>
   );
+  
+  if (tooltip) {
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            {buttonContent}
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{tooltip}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  }
+  
+  return buttonContent;
 };
 
 export default SidebarItem;
