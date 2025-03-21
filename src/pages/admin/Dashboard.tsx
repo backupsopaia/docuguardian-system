@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/modules/auth';
 
 // Import dashboard components
 import StatCard from '@/components/admin/dashboard/StatCard';

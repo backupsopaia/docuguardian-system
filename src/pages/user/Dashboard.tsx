@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileTextIcon, FolderIcon, ClockIcon, UsersIcon, ArrowUpRightIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/modules/auth';
 import { Separator } from '@/components/ui/separator';
 import { Link } from 'react-router-dom';
 

@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { EyeIcon, EyeOffIcon, KeyIcon, MailIcon, ShieldIcon } from 'lucide-react';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/modules/auth';
 import Logo from '@/components/Logo';
 
 const Login = () => {
