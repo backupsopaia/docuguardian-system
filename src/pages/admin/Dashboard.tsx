@@ -10,7 +10,7 @@ import SecurityAlerts from '@/components/admin/dashboard/SecurityAlerts';
 import DepartmentStorage from '@/components/admin/dashboard/DepartmentStorage';
 import SystemStatus from '@/components/admin/dashboard/SystemStatus';
 
-// Import dashboard data
+// Import dashboard data from our modular structure
 import { 
   stats, 
   loginAttempts, 
@@ -20,7 +20,7 @@ import {
   totalStorageUsed,
   totalStorageCapacity,
   lastSystemCheck
-} from '@/components/admin/dashboard/DashboardData';
+} from '@/modules/admin/dashboard/data';
 
 const AdminDashboard: React.FC = () => {
   const { user } = useAuth();

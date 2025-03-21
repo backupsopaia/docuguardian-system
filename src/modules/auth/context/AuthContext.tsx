@@ -1,6 +1,8 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { mockUsers } from '../data/users';
 
 interface User {
   id: string;
@@ -22,29 +24,6 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-const MOCK_USERS = [
-  {
-    id: '1',
-    name: 'Admin User',
-    email: 'admin@docuguardian.com',
-    password: 'admin123',
-    role: 'admin' as const,
-    department: 'IT',
-    isActive: true,
-    lastLogin: new Date()
-  },
-  {
-    id: '2',
-    name: 'Regular User',
-    email: 'user@docuguardian.com',
-    password: 'user123',
-    role: 'user' as const,
-    department: 'Marketing',
-    isActive: true,
-    lastLogin: new Date()
-  }
-];
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -72,7 +51,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      const foundUser = MOCK_USERS.find(
+      const foundUser = mockUsers.find(
         u => u.email === email && u.password === password
       );
       
