@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '@/modules/auth';
@@ -44,6 +43,21 @@ interface SidebarProps {
   toggleSidebar: () => void;
 }
 
+interface SubmenuItem {
+  label: string;
+  to: string;
+  active: boolean;
+}
+
+interface MenuItem {
+  icon: React.ElementType;
+  label: string;
+  to: string;
+  active: boolean;
+  badge?: string | number;
+  submenu?: SubmenuItem[];
+}
+
 const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, isMobile, toggleSidebar }) => {
   const { user, logout } = useAuth();
   const { theme, setTheme } = useTheme();
@@ -59,7 +73,7 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, isMobile, toggleSidebar 
     setTheme(theme === 'light' ? 'dark' : 'light');
   };
   
-  const adminMenuItems = [
+  const adminMenuItems: MenuItem[] = [
     {
       icon: Home,
       label: "Dashboard",
@@ -271,7 +285,7 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, isMobile, toggleSidebar 
     }
   ];
   
-  const userMenuItems = [
+  const userMenuItems: MenuItem[] = [
     {
       icon: Home,
       label: "Dashboard",
