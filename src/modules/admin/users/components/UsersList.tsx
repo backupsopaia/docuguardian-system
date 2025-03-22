@@ -76,7 +76,7 @@ export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions }) =
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <Badge variant={user.isActive ? "success" : "secondary"}>
+                  <Badge variant={user.isActive ? "default" : "secondary"} className={user.isActive ? "bg-green-600 hover:bg-green-700" : ""}>
                     {user.isActive ? 'Ativo' : 'Inativo'}
                   </Badge>
                 </TableCell>

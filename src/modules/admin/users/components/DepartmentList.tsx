@@ -69,7 +69,7 @@ export const DepartmentList: React.FC<DepartmentListProps> = ({ onEdit }) => {
                 <TableCell>{dept.description}</TableCell>
                 <TableCell>{dept.userCount}</TableCell>
                 <TableCell>
-                  <Badge variant={dept.isActive ? "success" : "secondary"}>
+                  <Badge variant={dept.isActive ? "default" : "secondary"} className={dept.isActive ? "bg-green-600 hover:bg-green-700" : ""}>
                     {dept.isActive ? 'Ativo' : 'Inativo'}
                   </Badge>
                 </TableCell>
