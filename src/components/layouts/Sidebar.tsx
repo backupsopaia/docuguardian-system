@@ -28,7 +28,8 @@ import {
   Gauge,
   CheckCheck,
   KanbanSquare,
-  Box
+  Box,
+  Building2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -249,40 +250,40 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, isMobile, toggleSidebar 
     },
     {
       icon: Users,
-      label: "Usuários e Departamentos",
+      label: "Usuários",
       to: "/admin/users",
-      active: currentPath.startsWith('/admin/users'),
+      active: currentPath === '/admin/users',
       badge: 24
     },
     {
       icon: ShieldCheck,
       label: "Segurança",
       to: "/admin/security",
-      active: currentPath.startsWith('/admin/security')
+      active: currentPath === '/admin/security'
     },
     {
-      icon: FolderOpen,
+      icon: Building2,
       label: "Departamentos",
       to: "/admin/departments",
-      active: currentPath.startsWith('/admin/departments')
+      active: currentPath === '/admin/departments'
     },
     {
       icon: HistoryIcon,
       label: "Logs de Auditoria",
       to: "/admin/audit",
-      active: currentPath.startsWith('/admin/audit')
+      active: currentPath === '/admin/audit'
     },
     {
       icon: CloudIcon,
       label: "Armazenamento",
       to: "/admin/storage",
-      active: currentPath.startsWith('/admin/storage')
+      active: currentPath === '/admin/storage'
     },
     {
       icon: PieChartIcon,
       label: "Relatórios",
       to: "/admin/reports",
-      active: currentPath.startsWith('/admin/reports')
+      active: currentPath === '/admin/reports'
     }
   ];
   

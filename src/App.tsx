@@ -15,6 +15,7 @@ import NotFound from "./pages/NotFound";
 
 // Admin components
 import UserManagement from "./modules/admin/users/components/UserManagement";
+import DepartmentManagement from "./modules/admin/departments/components/DepartmentManagement";
 
 // Layouts
 import MainLayout from "./components/layouts/MainLayout";
@@ -152,7 +153,7 @@ const AppRoutes = () => (
       {/* User and other admin routes */}
       <Route path="users" element={<UserManagement />} />
       <Route path="security" element={<div>Configurações de Segurança</div>} />
-      <Route path="departments" element={<div>Departamentos</div>} />
+      <Route path="departments" element={<DepartmentManagement />} />
       <Route path="audit" element={<div>Logs de Auditoria</div>} />
       <Route path="storage" element={<StoragePage />} />
       <Route path="reports" element={<div>Relatórios</div>} />

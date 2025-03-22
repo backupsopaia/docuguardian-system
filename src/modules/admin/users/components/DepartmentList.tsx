@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { FileEdit, Trash2 } from 'lucide-react';
+import { FileEdit, Trash2, Users, FolderOpen, ClipboardList, ShieldAlert } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,9 +34,19 @@ import { departments } from '@/modules/admin/users/data/departments';
 
 interface DepartmentListProps {
   onEdit: (department: any) => void;
+  onManageUsers?: (department: any) => void;
+  onManageFolders?: (department: any) => void;
+  onManageTasks?: (department: any) => void;
+  onManageRestrictions?: (department: any) => void;
 }
 
-export const DepartmentList: React.FC<DepartmentListProps> = ({ onEdit }) => {
+export const DepartmentList: React.FC<DepartmentListProps> = ({ 
+  onEdit, 
+  onManageUsers,
+  onManageFolders,
+  onManageTasks,
+  onManageRestrictions
+}) => {
   const [depts, setDepts] = useState(departments);
   const [deptToDelete, setDeptToDelete] = useState<any | null>(null);
   
@@ -69,7 +79,7 @@ export const DepartmentList: React.FC<DepartmentListProps> = ({ onEdit }) => {
                 <TableCell>{dept.description}</TableCell>
                 <TableCell>{dept.userCount}</TableCell>
                 <TableCell>
-                  <Badge variant={dept.isActive ? "default" : "secondary"} className={dept.isActive ? "bg-green-600 hover:bg-green-700" : ""}>
+                  <Badge variant="default" className={dept.isActive ? "bg-green-600 hover:bg-green-700" : ""}>
                     {dept.isActive ? 'Ativo' : 'Inativo'}
                   </Badge>
                 </TableCell>
@@ -88,6 +98,30 @@ export const DepartmentList: React.FC<DepartmentListProps> = ({ onEdit }) => {
                         <FileEdit className="mr-2 h-4 w-4" />
                         Editar
                       </DropdownMenuItem>
+                      {onManageUsers && (
+                        <DropdownMenuItem onClick={() => onManageUsers(dept)}>
+                          <Users className="mr-2 h-4 w-4" />
+                          Gerenciar Usuários
+                        </DropdownMenuItem>
+                      )}
+                      {onManageFolders && (
+                        <DropdownMenuItem onClick={() => onManageFolders(dept)}>
+                          <FolderOpen className="mr-2 h-4 w-4" />
+                          Pastas e Documentos
+                        </DropdownMenuItem>
+                      )}
+                      {onManageTasks && (
+                        <DropdownMenuItem onClick={() => onManageTasks(dept)}>
+                          <ClipboardList className="mr-2 h-4 w-4" />
+                          Tarefas
+                        </DropdownMenuItem>
+                      )}
+                      {onManageRestrictions && (
+                        <DropdownMenuItem onClick={() => onManageRestrictions(dept)}>
+                          <ShieldAlert className="mr-2 h-4 w-4" />
+                          Restrições
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuSeparator />
                       <DropdownMenuItem 
                         onClick={() => setDeptToDelete(dept)}
