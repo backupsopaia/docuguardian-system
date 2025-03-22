@@ -39,7 +39,7 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
   submenu
 }) => {
   const navigate = useNavigate();
-  const [isSubmenuOpen, setIsSubmenuOpen] = useState(false);
+  const [isSubmenuOpen, setIsSubmenuOpen] = useState(active && submenu ? true : false);
   
   const handleClick = () => {
     if (submenu && submenu.length > 0) {
@@ -57,20 +57,22 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
   
   const buttonContent = (
     <button
-      className={`dms-sidebar-item ${active ? 'dms-sidebar-item-active' : ''} ${submenu ? 'justify-between' : ''}`}
+      className={`flex items-center w-full py-2 px-3 text-sm rounded-md transition-colors ${
+        active ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium' : 'text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground'
+      } ${submenu ? 'justify-between' : ''}`}
       onClick={handleClick}
     >
-      <div className="flex items-center">
-        <Icon className="w-5 h-5" />
-        <span>{label}</span>
+      <div className="flex items-center gap-3 min-w-0">
+        <Icon className="w-5 h-5 flex-shrink-0" />
+        <span className="truncate">{label}</span>
       </div>
       {badge && (
-        <Badge variant="outline" className="ml-auto bg-sidebar-primary text-sidebar-primary-foreground text-xs">
+        <Badge variant="default" className="ml-auto bg-sidebar-primary text-sidebar-primary-foreground text-xs">
           {badge}
         </Badge>
       )}
       {submenu && submenu.length > 0 && (
-        <div className="ml-auto pl-2">
+        <div className="ml-auto pl-1">
           {isSubmenuOpen ? (
             <ChevronDown className="h-4 w-4" />
           ) : (
@@ -99,14 +101,19 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
       )}
       
       {submenu && isSubmenuOpen && (
-        <div className="pl-8 mt-1 space-y-1">
+        <div className="pl-7 mt-1 space-y-1 pb-1">
           {submenu.map((item, index) => (
             <button
               key={index}
-              className={`text-sm py-2 px-2 w-full text-left rounded-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors ${item.active ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium' : 'text-sidebar-foreground'}`}
+              className={`text-sm py-1.5 px-3 w-full text-left rounded-md transition-colors flex items-center ${
+                item.active 
+                  ? 'bg-sidebar-accent/80 text-sidebar-accent-foreground font-medium' 
+                  : 'text-sidebar-foreground hover:bg-sidebar-accent/30 hover:text-sidebar-accent-foreground'
+              }`}
               onClick={() => handleSubmenuItemClick(item.to)}
             >
-              {item.label}
+              <div className="w-1.5 h-1.5 rounded-full bg-current opacity-70 mr-2 flex-shrink-0" />
+              <span className="truncate">{item.label}</span>
             </button>
           ))}
         </div>

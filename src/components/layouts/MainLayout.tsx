@@ -37,7 +37,7 @@ export const MainLayout: React.FC = () => {
   };
   
   return (
-    <div className="min-h-screen flex bg-background">
+    <div className="min-h-screen flex bg-background overflow-hidden">
       <Sidebar 
         sidebarOpen={sidebarOpen} 
         isMobile={isMobile} 

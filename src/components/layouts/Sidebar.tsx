@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '@/modules/auth';
@@ -346,13 +347,13 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, isMobile, toggleSidebar 
       
       <aside 
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 bg-sidebar transition-transform duration-300 ease-in-out md:sticky md:top-0 h-full",
+          "fixed inset-y-0 left-0 z-50 w-64 bg-sidebar shadow-md transition-transform duration-300 ease-in-out md:sticky md:top-0 h-full",
           sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
-          "flex-shrink-0"
+          "flex-shrink-0 border-r border-sidebar-border"
         )}
       >
         <div className="flex flex-col h-full overflow-hidden">
-          <div className="p-4 flex items-center justify-between">
+          <div className="px-4 py-3 flex items-center justify-between">
             <Logo />
             {isMobile && (
               <Button 
@@ -368,12 +369,12 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, isMobile, toggleSidebar 
           
           <Separator className="border-sidebar-border" />
           
-          <div className="flex-1 py-2 overflow-y-auto">
+          <div className="flex-1 py-2 overflow-y-auto scrollbar-thin scrollbar-thumb-sidebar-border scrollbar-track-transparent">
             <div className="px-3 py-2">
-              <h3 className="text-xs font-medium text-sidebar-foreground/70 uppercase tracking-wider px-2">
+              <h3 className="text-xs font-medium text-sidebar-foreground/70 uppercase tracking-wider px-2 mb-3">
                 {isAdmin ? 'Administração' : 'Menu Principal'}
               </h3>
-              <div className="mt-2 space-y-1">
+              <div className="space-y-1">
                 {isAdmin ? (
                   <>
                     {adminMenuItems.map((item, index) => (
@@ -409,36 +410,36 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, isMobile, toggleSidebar 
             </div>
           </div>
           
-          <div className="p-4 border-t border-sidebar-border">
-            <div className="flex items-center space-x-2 mb-4">
+          <div className="p-4 border-t border-sidebar-border bg-sidebar-accent/10">
+            <div className="flex items-center space-x-2 mb-3">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={toggleTheme}
-                className="w-full text-sidebar-foreground bg-sidebar-accent hover:bg-sidebar-primary"
+                className="w-full text-sidebar-foreground hover:bg-sidebar-accent"
               >
                 {theme === 'light' ? (
                   <MoonIcon className="h-4 w-4 mr-2" />
                 ) : (
                   <SunIcon className="h-4 w-4 mr-2" />
                 )}
-                {theme === 'light' ? 'Dark Mode' : 'Light Mode'}
+                {theme === 'light' ? 'Modo escuro' : 'Modo claro'}
               </Button>
             </div>
             
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <Avatar className="h-8 w-8 border border-sidebar-border">
+                <Avatar className="h-9 w-9 border border-sidebar-border">
                   <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${user.name}`} />
                   <AvatarFallback className="bg-sidebar-accent text-sidebar-accent-foreground">
                     {user.name.split(' ').map(n => n[0]).join('')}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="text-sm font-medium text-sidebar-foreground truncate max-w-[100px] sm:max-w-[120px]">
+                  <p className="text-sm font-medium text-sidebar-foreground">
                     {user.name}
                   </p>
-                  <p className="text-xs text-sidebar-foreground/70 truncate max-w-[100px] sm:max-w-[120px]">
+                  <p className="text-xs text-sidebar-foreground/70">
                     {user.role === 'admin' ? 'Administrador' : user.department}
                   </p>
                 </div>
