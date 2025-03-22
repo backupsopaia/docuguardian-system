@@ -15,7 +15,20 @@ import {
   XIcon,
   SunIcon,
   MoonIcon,
-  LogOut
+  LogOut,
+  Workflow,
+  Route,
+  Octagon,
+  Target,
+  Award,
+  Briefcase,
+  Package2,
+  Library,
+  Share,
+  Gauge,
+  CheckCheck,
+  KanbanSquare,
+  Box
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -45,6 +58,268 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, isMobile, toggleSidebar 
     localStorage.setItem("dms-theme-manual", "true");
     setTheme(theme === 'light' ? 'dark' : 'light');
   };
+  
+  const adminMenuItems = [
+    {
+      icon: Home,
+      label: "Dashboard",
+      to: "/admin/dashboard",
+      active: currentPath === '/admin/dashboard'
+    },
+    {
+      icon: Library,
+      label: "Gestão de Documentos",
+      to: "#",
+      active: currentPath.startsWith('/admin/documents'),
+      submenu: [
+        {
+          label: "Todos os Documentos",
+          to: "/admin/documents",
+          active: currentPath === '/admin/documents'
+        },
+        {
+          label: "Pendentes",
+          to: "/admin/documents/pending",
+          active: currentPath === '/admin/documents/pending'
+        },
+        {
+          label: "Aprovados",
+          to: "/admin/documents/approved",
+          active: currentPath === '/admin/documents/approved'
+        },
+        {
+          label: "Arquivados",
+          to: "/admin/documents/archived",
+          active: currentPath === '/admin/documents/archived'
+        }
+      ]
+    },
+    {
+      icon: Workflow,
+      label: "Gestão de Processos BPM",
+      to: "#",
+      active: currentPath.startsWith('/admin/bpm'),
+      submenu: [
+        {
+          label: "Fluxos de Trabalho",
+          to: "/admin/bpm/workflows",
+          active: currentPath === '/admin/bpm/workflows'
+        },
+        {
+          label: "Processos Ativos",
+          to: "/admin/bpm/active",
+          active: currentPath === '/admin/bpm/active'
+        },
+        {
+          label: "Modelagem",
+          to: "/admin/bpm/modeling",
+          active: currentPath === '/admin/bpm/modeling'
+        }
+      ]
+    },
+    {
+      icon: Octagon,
+      label: "Gestão de Riscos (ERM)",
+      to: "#",
+      active: currentPath.startsWith('/admin/risks'),
+      submenu: [
+        {
+          label: "Matriz de Riscos",
+          to: "/admin/risks/matrix",
+          active: currentPath === '/admin/risks/matrix'
+        },
+        {
+          label: "Controles",
+          to: "/admin/risks/controls",
+          active: currentPath === '/admin/risks/controls'
+        },
+        {
+          label: "Incidentes",
+          to: "/admin/risks/incidents",
+          active: currentPath === '/admin/risks/incidents'
+        }
+      ]
+    },
+    {
+      icon: Gauge,
+      label: "Desempenho Corporativo",
+      to: "#",
+      active: currentPath.startsWith('/admin/performance'),
+      submenu: [
+        {
+          label: "KPIs",
+          to: "/admin/performance/kpis",
+          active: currentPath === '/admin/performance/kpis'
+        },
+        {
+          label: "Metas",
+          to: "/admin/performance/goals",
+          active: currentPath === '/admin/performance/goals'
+        },
+        {
+          label: "Dashboards",
+          to: "/admin/performance/dashboards",
+          active: currentPath === '/admin/performance/dashboards'
+        }
+      ]
+    },
+    {
+      icon: CheckCheck,
+      label: "Qualidade (EQM)",
+      to: "#",
+      active: currentPath.startsWith('/admin/quality'),
+      submenu: [
+        {
+          label: "Normas",
+          to: "/admin/quality/standards",
+          active: currentPath === '/admin/quality/standards'
+        },
+        {
+          label: "Auditorias",
+          to: "/admin/quality/audits",
+          active: currentPath === '/admin/quality/audits'
+        },
+        {
+          label: "Não Conformidades",
+          to: "/admin/quality/nonconformities",
+          active: currentPath === '/admin/quality/nonconformities'
+        }
+      ]
+    },
+    {
+      icon: Briefcase,
+      label: "Projetos e Portfólios",
+      to: "#",
+      active: currentPath.startsWith('/admin/projects'),
+      submenu: [
+        {
+          label: "Projetos",
+          to: "/admin/projects/list",
+          active: currentPath === '/admin/projects/list'
+        },
+        {
+          label: "Portfólios",
+          to: "/admin/projects/portfolios",
+          active: currentPath === '/admin/projects/portfolios'
+        },
+        {
+          label: "Recursos",
+          to: "/admin/projects/resources",
+          active: currentPath === '/admin/projects/resources'
+        }
+      ]
+    },
+    {
+      icon: Box,
+      label: "Ativos (EAM)",
+      to: "#",
+      active: currentPath.startsWith('/admin/assets'),
+      submenu: [
+        {
+          label: "Inventário",
+          to: "/admin/assets/inventory",
+          active: currentPath === '/admin/assets/inventory'
+        },
+        {
+          label: "Manutenção",
+          to: "/admin/assets/maintenance",
+          active: currentPath === '/admin/assets/maintenance'
+        },
+        {
+          label: "Ciclo de Vida",
+          to: "/admin/assets/lifecycle",
+          active: currentPath === '/admin/assets/lifecycle'
+        }
+      ]
+    },
+    {
+      icon: Users,
+      label: "Usuários e Departamentos",
+      to: "/admin/users",
+      active: currentPath.startsWith('/admin/users'),
+      badge: 24
+    },
+    {
+      icon: ShieldCheck,
+      label: "Segurança",
+      to: "/admin/security",
+      active: currentPath.startsWith('/admin/security')
+    },
+    {
+      icon: FolderOpen,
+      label: "Departamentos",
+      to: "/admin/departments",
+      active: currentPath.startsWith('/admin/departments')
+    },
+    {
+      icon: HistoryIcon,
+      label: "Logs de Auditoria",
+      to: "/admin/audit",
+      active: currentPath.startsWith('/admin/audit')
+    },
+    {
+      icon: CloudIcon,
+      label: "Armazenamento",
+      to: "/admin/storage",
+      active: currentPath.startsWith('/admin/storage')
+    },
+    {
+      icon: PieChartIcon,
+      label: "Relatórios",
+      to: "/admin/reports",
+      active: currentPath.startsWith('/admin/reports')
+    }
+  ];
+  
+  const userMenuItems = [
+    {
+      icon: Home,
+      label: "Dashboard",
+      to: "/dashboard",
+      active: currentPath === '/dashboard'
+    },
+    {
+      icon: Library,
+      label: "Documentos",
+      to: "#",
+      active: currentPath.startsWith('/documents'),
+      submenu: [
+        {
+          label: "Meus Documentos",
+          to: "/documents",
+          active: currentPath === '/documents'
+        },
+        {
+          label: "Pendentes",
+          to: "/documents/pending",
+          active: currentPath === '/documents/pending'
+        },
+        {
+          label: "Recentes",
+          to: "/documents/recent",
+          active: currentPath === '/documents/recent'
+        }
+      ]
+    },
+    {
+      icon: FolderOpen,
+      label: "Compartilhados Comigo",
+      to: "/shared",
+      active: currentPath.startsWith('/shared')
+    },
+    {
+      icon: HistoryIcon,
+      label: "Atividade Recente",
+      to: "/recent",
+      active: currentPath.startsWith('/recent')
+    },
+    {
+      icon: CloudIcon,
+      label: "Armazenamento em Nuvem",
+      to: "/storage",
+      active: currentPath.startsWith('/storage')
+    }
+  ];
   
   return (
     <>
@@ -82,107 +357,38 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, isMobile, toggleSidebar 
           <div className="flex-1 py-2 overflow-y-auto">
             <div className="px-3 py-2">
               <h3 className="text-xs font-medium text-sidebar-foreground/70 uppercase tracking-wider px-2">
-                {isAdmin ? 'Administration' : 'Main Menu'}
+                {isAdmin ? 'Administração' : 'Menu Principal'}
               </h3>
               <div className="mt-2 space-y-1">
                 {isAdmin ? (
                   <>
-                    <SidebarItem 
-                      icon={Home} 
-                      label="Dashboard" 
-                      to="/admin/dashboard" 
-                      active={currentPath === '/admin/dashboard'}
-                      onClick={() => isMobile && toggleSidebar()}
-                    />
-                    <SidebarItem 
-                      icon={FileText} 
-                      label="Documents" 
-                      to="/admin/documents" 
-                      active={currentPath.startsWith('/admin/documents')}
-                      onClick={() => isMobile && toggleSidebar()}
-                      badge={24}
-                    />
-                    <SidebarItem 
-                      icon={Users} 
-                      label="Users & Roles" 
-                      to="/admin/users" 
-                      active={currentPath.startsWith('/admin/users')}
-                      onClick={() => isMobile && toggleSidebar()}
-                    />
-                    <SidebarItem 
-                      icon={ShieldCheck} 
-                      label="Security" 
-                      to="/admin/security" 
-                      active={currentPath.startsWith('/admin/security')}
-                      onClick={() => isMobile && toggleSidebar()}
-                    />
-                    <SidebarItem 
-                      icon={FolderOpen} 
-                      label="Departments" 
-                      to="/admin/departments" 
-                      active={currentPath.startsWith('/admin/departments')}
-                      onClick={() => isMobile && toggleSidebar()}
-                    />
-                    <SidebarItem 
-                      icon={HistoryIcon} 
-                      label="Audit Logs" 
-                      to="/admin/audit" 
-                      active={currentPath.startsWith('/admin/audit')}
-                      onClick={() => isMobile && toggleSidebar()}
-                    />
-                    <SidebarItem 
-                      icon={CloudIcon} 
-                      label="Storage" 
-                      to="/admin/storage" 
-                      active={currentPath.startsWith('/admin/storage')}
-                      onClick={() => isMobile && toggleSidebar()}
-                    />
-                    <SidebarItem 
-                      icon={PieChartIcon} 
-                      label="Reports" 
-                      to="/admin/reports" 
-                      active={currentPath.startsWith('/admin/reports')}
-                      onClick={() => isMobile && toggleSidebar()}
-                    />
+                    {adminMenuItems.map((item, index) => (
+                      <SidebarItem 
+                        key={index}
+                        icon={item.icon} 
+                        label={item.label} 
+                        to={item.to} 
+                        active={item.active}
+                        onClick={() => isMobile && toggleSidebar()}
+                        badge={item.badge}
+                        submenu={item.submenu}
+                      />
+                    ))}
                   </>
                 ) : (
                   <>
-                    <SidebarItem 
-                      icon={Home} 
-                      label="Dashboard" 
-                      to="/dashboard" 
-                      active={currentPath === '/dashboard'}
-                      onClick={() => isMobile && toggleSidebar()}
-                    />
-                    <SidebarItem 
-                      icon={FileText} 
-                      label="My Documents" 
-                      to="/documents" 
-                      active={currentPath.startsWith('/documents')}
-                      onClick={() => isMobile && toggleSidebar()}
-                      badge={5}
-                    />
-                    <SidebarItem 
-                      icon={FolderOpen} 
-                      label="Shared With Me" 
-                      to="/shared" 
-                      active={currentPath.startsWith('/shared')}
-                      onClick={() => isMobile && toggleSidebar()}
-                    />
-                    <SidebarItem 
-                      icon={HistoryIcon} 
-                      label="Recent Activity" 
-                      to="/recent" 
-                      active={currentPath.startsWith('/recent')}
-                      onClick={() => isMobile && toggleSidebar()}
-                    />
-                    <SidebarItem 
-                      icon={CloudIcon} 
-                      label="Cloud Storage" 
-                      to="/storage" 
-                      active={currentPath.startsWith('/storage')}
-                      onClick={() => isMobile && toggleSidebar()}
-                    />
+                    {userMenuItems.map((item, index) => (
+                      <SidebarItem 
+                        key={index}
+                        icon={item.icon} 
+                        label={item.label} 
+                        to={item.to} 
+                        active={item.active}
+                        onClick={() => isMobile && toggleSidebar()}
+                        badge={item.badge}
+                        submenu={item.submenu}
+                      />
+                    ))}
                   </>
                 )}
               </div>
@@ -219,7 +425,7 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, isMobile, toggleSidebar 
                     {user.name}
                   </p>
                   <p className="text-xs text-sidebar-foreground/70 truncate max-w-[100px] sm:max-w-[120px]">
-                    {user.role === 'admin' ? 'Administrator' : user.department}
+                    {user.role === 'admin' ? 'Administrador' : user.department}
                   </p>
                 </div>
               </div>
@@ -235,7 +441,7 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, isMobile, toggleSidebar 
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Sign out</p>
+                  <p>Sair</p>
                 </TooltipContent>
               </Tooltip>
             </div>

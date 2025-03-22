@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -57,6 +56,14 @@ const AuthCheck = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+// Placeholder component for new routes
+const PlaceholderPage = ({ title }: { title: string }) => (
+  <div className="container py-6">
+    <h1 className="text-2xl font-bold mb-4">{title}</h1>
+    <p className="text-muted-foreground">Esta página está em desenvolvimento.</p>
+  </div>
+);
+
 const queryClient = new QueryClient();
 
 const AppRoutes = () => (
@@ -82,10 +89,15 @@ const AppRoutes = () => (
     >
       <Route index element={<Navigate to="/dashboard" replace />} />
       <Route path="dashboard" element={<UserDashboard />} />
-      {/* Add other user routes */}
-      <Route path="documents" element={<div>My Documents Page</div>} />
-      <Route path="shared" element={<div>Shared With Me Page</div>} />
-      <Route path="recent" element={<div>Recent Activity Page</div>} />
+      
+      {/* Document routes */}
+      <Route path="documents" element={<div>Meus Documentos</div>} />
+      <Route path="documents/pending" element={<PlaceholderPage title="Documentos Pendentes" />} />
+      <Route path="documents/recent" element={<PlaceholderPage title="Documentos Recentes" />} />
+      
+      {/* Other user routes */}
+      <Route path="shared" element={<div>Compartilhados Comigo</div>} />
+      <Route path="recent" element={<div>Atividade Recente</div>} />
       <Route path="storage" element={<StoragePage />} />
     </Route>
     
@@ -100,14 +112,50 @@ const AppRoutes = () => (
     >
       <Route index element={<Navigate to="/admin/dashboard" replace />} />
       <Route path="dashboard" element={<AdminDashboard />} />
-      {/* Add other admin routes */}
-      <Route path="documents" element={<div>Admin Documents Page</div>} />
+      
+      {/* Document management */}
+      <Route path="documents" element={<PlaceholderPage title="Todos os Documentos" />} />
+      <Route path="documents/pending" element={<PlaceholderPage title="Documentos Pendentes" />} />
+      <Route path="documents/approved" element={<PlaceholderPage title="Documentos Aprovados" />} />
+      <Route path="documents/archived" element={<PlaceholderPage title="Documentos Arquivados" />} />
+      
+      {/* BPM */}
+      <Route path="bpm/workflows" element={<PlaceholderPage title="Fluxos de Trabalho" />} />
+      <Route path="bpm/active" element={<PlaceholderPage title="Processos Ativos" />} />
+      <Route path="bpm/modeling" element={<PlaceholderPage title="Modelagem de Processos" />} />
+      
+      {/* Risk Management */}
+      <Route path="risks/matrix" element={<PlaceholderPage title="Matriz de Riscos" />} />
+      <Route path="risks/controls" element={<PlaceholderPage title="Controles de Riscos" />} />
+      <Route path="risks/incidents" element={<PlaceholderPage title="Incidentes" />} />
+      
+      {/* Performance Management */}
+      <Route path="performance/kpis" element={<PlaceholderPage title="KPIs" />} />
+      <Route path="performance/goals" element={<PlaceholderPage title="Metas" />} />
+      <Route path="performance/dashboards" element={<PlaceholderPage title="Dashboards de Desempenho" />} />
+      
+      {/* Quality Management */}
+      <Route path="quality/standards" element={<PlaceholderPage title="Normas de Qualidade" />} />
+      <Route path="quality/audits" element={<PlaceholderPage title="Auditorias" />} />
+      <Route path="quality/nonconformities" element={<PlaceholderPage title="Não Conformidades" />} />
+      
+      {/* Project Management */}
+      <Route path="projects/list" element={<PlaceholderPage title="Projetos" />} />
+      <Route path="projects/portfolios" element={<PlaceholderPage title="Portfólios" />} />
+      <Route path="projects/resources" element={<PlaceholderPage title="Recursos" />} />
+      
+      {/* Asset Management */}
+      <Route path="assets/inventory" element={<PlaceholderPage title="Inventário de Ativos" />} />
+      <Route path="assets/maintenance" element={<PlaceholderPage title="Manutenção de Ativos" />} />
+      <Route path="assets/lifecycle" element={<PlaceholderPage title="Ciclo de Vida de Ativos" />} />
+      
+      {/* User and other admin routes */}
       <Route path="users" element={<UserManagement />} />
-      <Route path="security" element={<div>Security Settings Page</div>} />
-      <Route path="departments" element={<div>Departments Page</div>} />
-      <Route path="audit" element={<div>Audit Logs Page</div>} />
+      <Route path="security" element={<div>Configurações de Segurança</div>} />
+      <Route path="departments" element={<div>Departamentos</div>} />
+      <Route path="audit" element={<div>Logs de Auditoria</div>} />
       <Route path="storage" element={<StoragePage />} />
-      <Route path="reports" element={<div>Reports Page</div>} />
+      <Route path="reports" element={<div>Relatórios</div>} />
     </Route>
     
     {/* 404 */}
