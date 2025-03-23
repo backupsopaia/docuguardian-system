@@ -23,7 +23,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
-import { users } from '@/modules/admin/users/data/users';
+import { mockUsers } from '@/modules/admin/users/data/users';
 
 interface DepartmentUsersDialogProps {
   open: boolean;
@@ -42,14 +42,14 @@ export const DepartmentUsersDialog: React.FC<DepartmentUsersDialogProps> = ({
   React.useEffect(() => {
     if (department) {
       // In a real app, you would fetch users assigned to this department
-      const assignedUsers = users.filter(user => 
+      const assignedUsers = mockUsers.filter(user => 
         user.department === department.name
       );
       setDepartmentUsers(assignedUsers);
     }
   }, [department]);
   
-  const filteredUsers = users.filter(user => 
+  const filteredUsers = mockUsers.filter(user => 
     user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
