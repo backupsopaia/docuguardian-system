@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/modules/auth';
 import { useTheme } from '@/context/ThemeContext';
 import { 
@@ -67,6 +67,7 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, isMobile, toggleSidebar 
   const { user, logout } = useAuth();
   const { theme, setTheme } = useTheme();
   const location = useLocation();
+  const navigate = useNavigate();
   
   if (!user) return null;
   
