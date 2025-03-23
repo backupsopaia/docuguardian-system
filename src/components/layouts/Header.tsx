@@ -6,6 +6,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/modules/auth';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import Sidebar from './Sidebar';
 
 interface HeaderProps {
   isMobile: boolean;
@@ -29,12 +31,32 @@ const Header: React.FC<HeaderProps> = ({ isMobile, isScrolled, toggleSidebar, si
     >
       <div className="flex h-16 items-center px-4 justify-between">
         <div className="flex items-center space-x-4">
-          {isMobile && (
+          {isMobile ? (
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="md:hidden"
+                >
+                  <Menu className="h-6 w-6" />
+                  <span className="sr-only">Toggle menu</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="p-0 w-[80%] max-w-[300px]">
+                <Sidebar 
+                  sidebarOpen={true} 
+                  isMobile={true} 
+                  toggleSidebar={() => {}} 
+                />
+              </SheetContent>
+            </Sheet>
+          ) : (
             <Button
               variant="ghost"
               size="icon"
               onClick={toggleSidebar}
-              className="md:hidden"
+              className="md:flex hidden"
             >
               <Menu className="h-6 w-6" />
             </Button>
