@@ -13,6 +13,14 @@ export const MainLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
   const [isScrolled, setIsScrolled] = useState(false);
   
+  // Get initial collapsed state from localStorage
+  useEffect(() => {
+    const storedState = localStorage.getItem('sidebar-collapsed');
+    if (storedState !== null) {
+      setSidebarOpen(storedState !== 'true');
+    }
+  }, []);
+  
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
@@ -25,15 +33,16 @@ export const MainLayout: React.FC = () => {
   useEffect(() => {
     if (isMobile) {
       setSidebarOpen(false);
-    } else {
-      setSidebarOpen(true);
     }
   }, [location.pathname, isMobile]);
   
   if (!user) return null;
   
   const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
+    const newState = !sidebarOpen;
+    setSidebarOpen(newState);
+    // Save collapsed state to localStorage
+    localStorage.setItem('sidebar-collapsed', newState ? 'false' : 'true');
   };
   
   return (
@@ -44,11 +53,12 @@ export const MainLayout: React.FC = () => {
         toggleSidebar={toggleSidebar} 
       />
       
-      <div className="flex-1 flex flex-col min-h-screen w-full overflow-hidden">
+      <div className={`flex-1 flex flex-col min-h-screen w-full overflow-hidden transition-all duration-300 ${sidebarOpen ? 'md:ml-0' : 'md:ml-0'}`}>
         <Header 
           isScrolled={isScrolled} 
           isMobile={isMobile} 
           toggleSidebar={toggleSidebar} 
+          sidebarOpen={sidebarOpen}
         />
         
         <main className="flex-1 overflow-auto p-4 sm:p-6 animate-fade-in">

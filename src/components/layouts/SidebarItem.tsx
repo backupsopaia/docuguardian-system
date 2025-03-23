@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { ChevronDown, ChevronRight } from 'lucide-react';
@@ -40,6 +40,13 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
 }) => {
   const navigate = useNavigate();
   const [isSubmenuOpen, setIsSubmenuOpen] = useState(active && submenu ? true : false);
+  
+  // Reset submenu open state when active state changes
+  useEffect(() => {
+    if (submenu) {
+      setIsSubmenuOpen(active);
+    }
+  }, [active, submenu]);
   
   const handleClick = () => {
     if (submenu && submenu.length > 0) {

@@ -29,7 +29,10 @@ import {
   CheckCheck,
   KanbanSquare,
   Box,
-  Building2
+  Building2,
+  ChevronLeft,
+  Menu,
+  ChevronRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -348,15 +351,31 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, isMobile, toggleSidebar 
       
       <aside 
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 bg-sidebar shadow-md transition-transform duration-300 ease-in-out md:sticky md:top-0 h-full",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 bg-sidebar shadow-md transition-all duration-300 ease-in-out md:sticky md:top-0 h-full",
+          sidebarOpen ? "w-64" : "w-[70px]",
           "flex-shrink-0 border-r border-sidebar-border"
         )}
       >
         <div className="flex flex-col h-full overflow-hidden">
-          <div className="px-4 py-3 flex items-center justify-between">
-            <Logo />
-            {isMobile && (
+          <div className={`px-4 py-3 flex items-center ${sidebarOpen ? 'justify-between' : 'justify-center'}`}>
+            {sidebarOpen ? (
+              <Logo />
+            ) : (
+              <div className="w-8 h-8 flex items-center justify-center">
+                <Logo />
+              </div>
+            )}
+            
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={toggleSidebar}
+              className="text-sidebar-foreground hidden md:flex"
+            >
+              {sidebarOpen ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
+            </Button>
+            
+            {isMobile && sidebarOpen && (
               <Button 
                 variant="ghost" 
                 size="icon" 
@@ -371,96 +390,222 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, isMobile, toggleSidebar 
           <Separator className="border-sidebar-border" />
           
           <div className="flex-1 py-2 overflow-y-auto scrollbar-thin scrollbar-thumb-sidebar-border scrollbar-track-transparent">
-            <div className="px-3 py-2">
-              <h3 className="text-xs font-medium text-sidebar-foreground/70 uppercase tracking-wider px-2 mb-3">
-                {isAdmin ? 'Administração' : 'Menu Principal'}
-              </h3>
-              <div className="space-y-1">
-                {isAdmin ? (
-                  <>
-                    {adminMenuItems.map((item, index) => (
-                      <SidebarItem 
-                        key={index}
-                        icon={item.icon} 
-                        label={item.label} 
-                        to={item.to} 
-                        active={item.active}
-                        onClick={() => isMobile && toggleSidebar()}
-                        badge={item.badge}
-                        submenu={item.submenu}
-                      />
-                    ))}
-                  </>
-                ) : (
-                  <>
-                    {userMenuItems.map((item, index) => (
-                      <SidebarItem 
-                        key={index}
-                        icon={item.icon} 
-                        label={item.label} 
-                        to={item.to} 
-                        active={item.active}
-                        onClick={() => isMobile && toggleSidebar()}
-                        badge={item.badge}
-                        submenu={item.submenu}
-                      />
-                    ))}
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-          
-          <div className="p-4 border-t border-sidebar-border bg-sidebar-accent/10">
-            <div className="flex items-center space-x-2 mb-3">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={toggleTheme}
-                className="w-full text-sidebar-foreground hover:bg-sidebar-accent"
-              >
-                {theme === 'light' ? (
-                  <MoonIcon className="h-4 w-4 mr-2" />
-                ) : (
-                  <SunIcon className="h-4 w-4 mr-2" />
-                )}
-                {theme === 'light' ? 'Modo escuro' : 'Modo claro'}
-              </Button>
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <Avatar className="h-9 w-9 border border-sidebar-border">
-                  <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${user.name}`} />
-                  <AvatarFallback className="bg-sidebar-accent text-sidebar-accent-foreground">
-                    {user.name.split(' ').map(n => n[0]).join('')}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="text-sm font-medium text-sidebar-foreground">
-                    {user.name}
-                  </p>
-                  <p className="text-xs text-sidebar-foreground/70">
-                    {user.role === 'admin' ? 'Administrador' : user.department}
-                  </p>
+            {sidebarOpen ? (
+              <div className="px-3 py-2">
+                <h3 className="text-xs font-medium text-sidebar-foreground/70 uppercase tracking-wider px-2 mb-3">
+                  {isAdmin ? 'Administração' : 'Menu Principal'}
+                </h3>
+                <div className="space-y-1">
+                  {isAdmin ? (
+                    <>
+                      {adminMenuItems.map((item, index) => (
+                        <SidebarItem 
+                          key={index}
+                          icon={item.icon} 
+                          label={item.label} 
+                          to={item.to} 
+                          active={item.active}
+                          onClick={() => isMobile && toggleSidebar()}
+                          badge={item.badge}
+                          submenu={item.submenu}
+                        />
+                      ))}
+                    </>
+                  ) : (
+                    <>
+                      {userMenuItems.map((item, index) => (
+                        <SidebarItem 
+                          key={index}
+                          icon={item.icon} 
+                          label={item.label} 
+                          to={item.to} 
+                          active={item.active}
+                          onClick={() => isMobile && toggleSidebar()}
+                          badge={item.badge}
+                          submenu={item.submenu}
+                        />
+                      ))}
+                    </>
+                  )}
                 </div>
               </div>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    onClick={logout} 
-                    className="text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+            ) : (
+              <div className="px-2 py-4">
+                <div className="space-y-3 flex flex-col items-center">
+                  {isAdmin ? (
+                    <>
+                      {adminMenuItems.map((item, index) => (
+                        <Tooltip key={index}>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant={item.active ? "default" : "ghost"}
+                              size="icon"
+                              className={cn(
+                                "h-10 w-10 rounded-md",
+                                item.active ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-sidebar-foreground hover:bg-sidebar-accent/50"
+                              )}
+                              onClick={() => {
+                                if (!item.submenu) {
+                                  location.pathname !== item.to && navigate(item.to);
+                                  isMobile && toggleSidebar();
+                                }
+                              }}
+                            >
+                              <item.icon className="h-5 w-5" />
+                              {item.badge && (
+                                <span className="absolute top-0 right-0 h-4 w-4 text-[10px] flex items-center justify-center rounded-full bg-sidebar-primary text-sidebar-primary-foreground">
+                                  {item.badge}
+                                </span>
+                              )}
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="right">
+                            <p>{item.label}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      ))}
+                    </>
+                  ) : (
+                    <>
+                      {userMenuItems.map((item, index) => (
+                        <Tooltip key={index}>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant={item.active ? "default" : "ghost"}
+                              size="icon"
+                              className={cn(
+                                "h-10 w-10 rounded-md",
+                                item.active ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-sidebar-foreground hover:bg-sidebar-accent/50"
+                              )}
+                              onClick={() => {
+                                if (!item.submenu) {
+                                  location.pathname !== item.to && navigate(item.to);
+                                  isMobile && toggleSidebar();
+                                }
+                              }}
+                            >
+                              <item.icon className="h-5 w-5" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="right">
+                            <p>{item.label}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      ))}
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+          
+          <div className={`p-4 border-t border-sidebar-border bg-sidebar-accent/10 ${sidebarOpen ? '' : 'flex justify-center'}`}>
+            {sidebarOpen ? (
+              <>
+                <div className="flex items-center space-x-2 mb-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={toggleTheme}
+                    className="w-full text-sidebar-foreground hover:bg-sidebar-accent"
                   >
-                    <LogOut className="h-5 w-5" />
+                    {theme === 'light' ? (
+                      <MoonIcon className="h-4 w-4 mr-2" />
+                    ) : (
+                      <SunIcon className="h-4 w-4 mr-2" />
+                    )}
+                    {theme === 'light' ? 'Modo escuro' : 'Modo claro'}
                   </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Sair</p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <Avatar className="h-9 w-9 border border-sidebar-border">
+                      <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${user.name}`} />
+                      <AvatarFallback className="bg-sidebar-accent text-sidebar-accent-foreground">
+                        {user.name.split(' ').map(n => n[0]).join('')}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="text-sm font-medium text-sidebar-foreground">
+                        {user.name}
+                      </p>
+                      <p className="text-xs text-sidebar-foreground/70">
+                        {user.role === 'admin' ? 'Administrador' : user.department}
+                      </p>
+                    </div>
+                  </div>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={logout} 
+                        className="text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+                      >
+                        <LogOut className="h-5 w-5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Sair</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+              </>
+            ) : (
+              <div className="flex flex-col items-center gap-4">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="icon" 
+                      onClick={toggleTheme}
+                      className="text-sidebar-foreground hover:bg-sidebar-accent h-10 w-10"
+                    >
+                      {theme === 'light' ? (
+                        <MoonIcon className="h-5 w-5" />
+                      ) : (
+                        <SunIcon className="h-5 w-5" />
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">
+                    <p>{theme === 'light' ? 'Modo escuro' : 'Modo claro'}</p>
+                  </TooltipContent>
+                </Tooltip>
+                
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Avatar className="h-9 w-9 border border-sidebar-border cursor-pointer">
+                      <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${user.name}`} />
+                      <AvatarFallback className="bg-sidebar-accent text-sidebar-accent-foreground">
+                        {user.name.split(' ').map(n => n[0]).join('')}
+                      </AvatarFallback>
+                    </Avatar>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">
+                    <p>{user.name}</p>
+                    <p className="text-xs opacity-75">{user.role === 'admin' ? 'Administrador' : user.department}</p>
+                  </TooltipContent>
+                </Tooltip>
+                
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={logout} 
+                      className="text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+                    >
+                      <LogOut className="h-5 w-5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">
+                    <p>Sair</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            )}
           </div>
         </div>
       </aside>

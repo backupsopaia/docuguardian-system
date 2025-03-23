@@ -1,72 +1,72 @@
 
 import React from 'react';
-import { 
-  BellIcon, 
-  Search, 
-  Settings, 
-  MenuIcon
-} from 'lucide-react';
+import { Bell, Menu, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useAuth } from '@/modules/auth';
+import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 
 interface HeaderProps {
-  isScrolled: boolean;
   isMobile: boolean;
+  isScrolled: boolean;
   toggleSidebar: () => void;
+  sidebarOpen?: boolean;
 }
 
-const Header: React.FC<HeaderProps> = ({ isScrolled, isMobile, toggleSidebar }) => {
+const Header: React.FC<HeaderProps> = ({ isMobile, isScrolled, toggleSidebar, sidebarOpen }) => {
+  const { user } = useAuth();
+  
+  if (!user) return null;
+  
   return (
-    <header className={cn(
-      "h-16 z-30 border-b transition-all duration-200 flex items-center justify-between px-4",
-      "bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60",
-      isScrolled && "sticky top-0 shadow-sm"
-    )}>
-      <div className="flex items-center space-x-4">
-        {isMobile && (
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={toggleSidebar}
-            className="md:hidden"
-          >
-            <MenuIcon className="h-5 w-5" />
-          </Button>
-        )}
-        <div className="relative w-full max-w-md">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search className="h-4 w-4 text-muted-foreground" />
+    <header 
+      className={cn(
+        "sticky top-0 z-30 w-full bg-background transition-shadow duration-300",
+        isScrolled ? "shadow-md" : "",
+        "border-b border-border"
+      )}
+    >
+      <div className="flex h-16 items-center px-4 justify-between">
+        <div className="flex items-center space-x-4">
+          {isMobile && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleSidebar}
+              className="md:hidden"
+            >
+              <Menu className="h-6 w-6" />
+            </Button>
+          )}
+          
+          <div className="relative w-full max-w-md">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Pesquisar..."
+              className="w-full rounded-md pl-8 md:w-[300px] lg:w-[400px] bg-background"
+            />
           </div>
-          <input
-            type="search"
-            placeholder="Search documents..."
-            className="pl-10 py-2 pr-4 block w-full rounded-md border border-input text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-background"
-          />
         </div>
-      </div>
-      <div className="flex items-center space-x-2">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="relative">
-              <BellIcon className="h-5 w-5" />
-              <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Notifications</p>
-          </TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <Settings className="h-5 w-5" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Settings</p>
-          </TooltipContent>
-        </Tooltip>
+        
+        <div className="flex items-center space-x-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="relative"
+          >
+            <Bell className="h-5 w-5" />
+            <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary"></span>
+          </Button>
+          
+          <Avatar className="h-8 w-8 md:hidden">
+            <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${user.name}`} />
+            <AvatarFallback>
+              {user.name.split(' ').map(n => n[0]).join('')}
+            </AvatarFallback>
+          </Avatar>
+        </div>
       </div>
     </header>
   );
