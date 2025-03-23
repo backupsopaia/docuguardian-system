@@ -5,6 +5,7 @@ import { useAuth } from '@/modules/auth';
 import { useIsMobile } from '@/hooks/use-mobile';
 import Sidebar from './Sidebar';
 import Header from './Header';
+import MobileNavigation from './MobileNavigation';
 
 export const MainLayout: React.FC = () => {
   const { user } = useAuth();
@@ -47,13 +48,15 @@ export const MainLayout: React.FC = () => {
   
   return (
     <div className="min-h-screen flex bg-background overflow-hidden">
-      <Sidebar 
-        sidebarOpen={sidebarOpen} 
-        isMobile={isMobile} 
-        toggleSidebar={toggleSidebar} 
-      />
+      {!isMobile && (
+        <Sidebar 
+          sidebarOpen={sidebarOpen} 
+          isMobile={isMobile} 
+          toggleSidebar={toggleSidebar} 
+        />
+      )}
       
-      <div className={`flex-1 flex flex-col min-h-screen w-full overflow-hidden transition-all duration-300 ${sidebarOpen ? 'md:ml-0' : 'md:ml-0'}`}>
+      <div className={`flex-1 flex flex-col min-h-screen w-full overflow-hidden transition-all duration-300 ${sidebarOpen && !isMobile ? 'md:ml-0' : 'md:ml-0'}`}>
         <Header 
           isScrolled={isScrolled} 
           isMobile={isMobile} 
@@ -64,6 +67,8 @@ export const MainLayout: React.FC = () => {
         <main className="flex-1 overflow-auto p-4 sm:p-6 animate-fade-in">
           <Outlet />
         </main>
+        
+        {isMobile && <MobileNavigation />}
       </div>
     </div>
   );
