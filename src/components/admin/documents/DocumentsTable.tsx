@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   Table, 
   TableHeader, 
@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/table';
 import { DocumentTableRow } from './DocumentTableRow';
 import { DocumentEmptyState } from './DocumentEmptyState';
+import { SortableTableHeader, SortDirection, SortableColumn } from '@/components/ui/sortable-table-header';
 
 export type DocumentStatus = 'pending' | 'approved' | 'archived' | 'rejected';
 
@@ -40,6 +41,15 @@ interface DocumentsTableProps {
   isLoading?: boolean;
 }
 
+const sortableColumns: SortableColumn[] = [
+  { key: 'name', label: 'Nome do Documento' },
+  { key: 'category', label: 'Categoria' },
+  { key: 'department', label: 'Departamento' },
+  { key: 'status', label: 'Status' },
+  { key: 'updatedAt', label: 'Data' },
+  { key: 'size', label: 'Tamanho' }
+];
+
 const DocumentsTable: React.FC<DocumentsTableProps> = ({ 
   documents, 
   type,
@@ -54,6 +64,61 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({
   onDownload,
   isLoading = false
 }) => {
+  const [sortKey, setSortKey] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
+
+  const handleSort = (key: string) => {
+    if (sortKey === key) {
+      // Toggle direction or reset
+      if (sortDirection === 'asc') {
+        setSortDirection('desc');
+      } else if (sortDirection === 'desc') {
+        setSortKey(null);
+        setSortDirection(null);
+      } else {
+        setSortDirection('asc');
+      }
+    } else {
+      // New sort key
+      setSortKey(key);
+      setSortDirection('asc');
+    }
+  };
+
+  const sortedDocuments = useMemo(() => {
+    if (!sortKey || !sortDirection) {
+      return documents;
+    }
+
+    return [...documents].sort((a, b) => {
+      // Handle date fields
+      if (sortKey === 'updatedAt' || sortKey === 'createdAt') {
+        const dateA = new Date(a[sortKey]);
+        const dateB = new Date(b[sortKey]);
+        return sortDirection === 'asc'
+          ? dateA.getTime() - dateB.getTime()
+          : dateB.getTime() - dateA.getTime();
+      }
+      
+      // Handle size as a number
+      if (sortKey === 'size') {
+        const sizeA = a[sortKey] || 0;
+        const sizeB = b[sortKey] || 0;
+        return sortDirection === 'asc' ? sizeA - sizeB : sizeB - sizeA;
+      }
+      
+      // Handle string fields
+      const valueA = String(a[sortKey] || '').toLowerCase();
+      const valueB = String(b[sortKey] || '').toLowerCase();
+      
+      if (sortDirection === 'asc') {
+        return valueA.localeCompare(valueB);
+      } else {
+        return valueB.localeCompare(valueA);
+      }
+    });
+  }, [documents, sortKey, sortDirection]);
+
   if (isLoading || documents.length === 0) {
     return <DocumentEmptyState isLoading={isLoading} />;
   }
@@ -63,17 +128,20 @@ const DocumentsTable: React.FC<DocumentsTableProps> = ({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Nome do Documento</TableHead>
-            <TableHead>Categoria</TableHead>
-            <TableHead>Departamento</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Data</TableHead>
-            <TableHead>Tamanho</TableHead>
+            {sortableColumns.map((column) => (
+              <SortableTableHeader
+                key={column.key}
+                column={column}
+                sortKey={sortKey}
+                sortDirection={sortDirection}
+                onSort={handleSort}
+              />
+            ))}
             <TableHead className="text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {documents.map((document) => (
+          {sortedDocuments.map((document) => (
             <DocumentTableRow
               key={document.id}
               document={document}
