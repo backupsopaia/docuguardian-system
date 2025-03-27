@@ -1,9 +1,8 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { mockUsers } from '../data/users';
-import { apiFetch } from '@/lib/api';
+import { apiFetch } from '@/lib/apiService';
 
 interface User {
   id: string;
