@@ -1,4 +1,3 @@
-
 import React, { useCallback, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import {
@@ -8,7 +7,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { User, createUser, updateUser } from '@/modules/admin/users/api/userService';
+import { User } from '../../api/types';
+import { createUser, updateUser } from '../../api/userService';
 import { UserForm } from './UserForm';
 import { UserFormValues } from './schema';
 
@@ -29,7 +29,6 @@ export const UserDialog: React.FC<UserDialogProps> = ({
   const isMounted = useRef(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // Cleanup function to prevent state updates after unmount
   React.useEffect(() => {
     return () => {
       isMounted.current = false;
@@ -66,7 +65,6 @@ export const UserDialog: React.FC<UserDialogProps> = ({
         onUserUpdated();
       }
       
-      // Close dialog
       if (isMounted.current) {
         onOpenChange(false);
         setIsSubmitting(false);

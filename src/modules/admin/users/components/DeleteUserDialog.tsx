@@ -9,14 +9,12 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { User } from '@/modules/admin/users/api/userService';
+} from "@/components/ui/alert-dialog";
 import { Loader2 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { User } from '../api/types';
 
 interface DeleteUserDialogProps {
-  user: User | null;
+  user: User;
   isDeleting: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirmDelete: () => void;
@@ -26,54 +24,34 @@ export const DeleteUserDialog: React.FC<DeleteUserDialogProps> = ({
   user,
   isDeleting,
   onOpenChange,
-  onConfirmDelete,
+  onConfirmDelete
 }) => {
-  const handleDelete = () => {
-    onConfirmDelete();
-    
-    // Notificar dashboard sobre a remoção do usuário
-    setTimeout(() => {
-      try {
-        supabase.channel('custom-all-channel')
-          .send({
-            type: 'broadcast',
-            event: 'user-change',
-            payload: { action: 'delete' }
-          });
-        
-        console.log('Broadcast message sent for user deletion');
-      } catch (error) {
-        console.error('Error sending broadcast message:', error);
-      }
-    }, 500);
-  };
-
   return (
-    <AlertDialog open={!!user} onOpenChange={onOpenChange}>
+    <AlertDialog open={true} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Confirmar remoção</AlertDialogTitle>
+          <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
           <AlertDialogDescription>
-            Tem certeza que deseja remover o usuário <strong>{user?.name}</strong>?
-            <br />
+            Tem certeza que deseja remover o usuário <strong>{user.name}</strong>?<br />
             Esta ação não pode ser desfeita.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
           <AlertDialogAction 
-            onClick={handleDelete}
-            disabled={isDeleting}
+            onClick={(e) => {
+              e.preventDefault();
+              onConfirmDelete();
+            }}
             className="bg-destructive hover:bg-destructive/90"
+            disabled={isDeleting}
           >
             {isDeleting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Removendo...
               </>
-            ) : (
-              'Sim, remover'
-            )}
+            ) : 'Remover'}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

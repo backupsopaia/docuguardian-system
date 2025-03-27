@@ -8,7 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { User } from '../api/userService';
+import { User } from '../api/types';
 import { UserTableRow } from './UserTableRow';
 
 interface UsersTableProps {

@@ -1,8 +1,8 @@
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { getUsers, deleteUser, User } from '../api/userService';
+import { getUsers, deleteUser } from '../api/userService';
+import { User } from '../api/types';
 import { UsersTable } from './UsersTable';
 import { DeleteUserDialog } from './DeleteUserDialog';
 
@@ -20,17 +20,14 @@ export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions, ref
   const [error, setError] = useState<string | null>(null);
   const [loadAttempt, setLoadAttempt] = useState(0);
   
-  // Reference to track if component is mounted
   const isMounted = useRef(true);
   
-  // Clean up function to prevent state updates after unmount
   useEffect(() => {
     return () => {
       isMounted.current = false;
     };
   }, []);
   
-  // Optimized data loading function with safety checks
   const loadUsers = useCallback(async () => {
     if (!isMounted.current) return;
     
@@ -41,15 +38,12 @@ export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions, ref
       console.log('Loading users... (attempt ' + (loadAttempt + 1) + ')');
       const fetchedUsers = await getUsers();
       
-      // Guard against component unmount during async operation
       if (!isMounted.current) return;
       
-      // Verify the response is an array
       if (Array.isArray(fetchedUsers)) {
         console.log(`Successfully loaded ${fetchedUsers.length} users`);
         setUsers(fetchedUsers);
         
-        // If we got an empty array but this isn't our first attempt, show a message
         if (fetchedUsers.length === 0 && loadAttempt > 0) {
           toast.info('Nenhum usuário encontrado no sistema');
         }
@@ -60,7 +54,6 @@ export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions, ref
         toast.error('Falha ao carregar usuários: formato inválido');
       }
     } catch (error) {
-      // Guard against component unmount during async operation
       if (!isMounted.current) return;
       
       console.error('Failed to load users:', error);
@@ -68,14 +61,12 @@ export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions, ref
       setError('Falha ao carregar usuários');
       toast.error('Falha ao carregar usuários');
     } finally {
-      // Guard against component unmount
       if (isMounted.current) {
         setIsLoading(false);
       }
     }
   }, [loadAttempt]);
   
-  // Retry loading if previous attempt failed
   useEffect(() => {
     if (!error) return;
     
@@ -88,40 +79,33 @@ export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions, ref
     return () => clearTimeout(timer);
   }, [error]);
   
-  // Load users when component mounts or refreshTrigger changes
   useEffect(() => {
     console.log('UsersList effect triggered, refreshTrigger:', refreshTrigger, 'loadAttempt:', loadAttempt);
     
-    // Use setTimeout to prevent immediate execution that might cause DOM manipulation issues
     const timer = setTimeout(() => {
       if (isMounted.current) {
         loadUsers();
       }
     }, 0);
     
-    // Clean up any pending operations
     return () => {
       clearTimeout(timer);
     };
   }, [loadUsers, refreshTrigger, loadAttempt]);
   
-  // Handle deletion confirmation with safety checks
   const handleConfirmDelete = () => {
     if (!userToDelete || !isMounted.current) return;
     
     setIsDeleting(true);
     
-    // Wrap in setTimeout to prevent immediate execution
     setTimeout(async () => {
       if (!isMounted.current || !userToDelete) return;
       
       try {
-        // Perform deletion safely
         await deleteUser(userToDelete.id);
         
         if (!isMounted.current) return;
         
-        // Update state without doing a full reload
         setUsers(prevUsers => prevUsers.filter(user => user.id !== userToDelete.id));
         toast.success(`Usuário ${userToDelete.name} removido com sucesso`);
         setUserToDelete(null);
@@ -138,21 +122,18 @@ export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions, ref
     }, 0);
   };
 
-  // Handle delete user request
   const handleDeleteUser = (user: User) => {
     if (isMounted.current) {
       setUserToDelete(user);
     }
   };
   
-  // Handle dialog close
   const handleDialogOpenChange = (open: boolean) => {
     if (!open && isMounted.current) {
       setUserToDelete(null);
     }
   };
   
-  // Loading state
   if (isLoading) {
     return (
       <div className="flex justify-center items-center p-8">
@@ -161,7 +142,6 @@ export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions, ref
     );
   }
   
-  // Error state with retry button
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center p-8 gap-4">

@@ -23,7 +23,7 @@ import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { departments } from '@/modules/admin/users/data/departments';
-import { User } from '@/modules/admin/users/api/userService';
+import { User } from '@/modules/admin/users/api/types';
 import { userFormSchema, UserFormValues } from './schema';
 
 interface UserFormProps {
