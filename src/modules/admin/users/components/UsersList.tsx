@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { getUsers, deleteUser, User } from '../api/userService';
@@ -18,16 +18,31 @@ export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions, ref
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [loadAttempt, setLoadAttempt] = useState(0); // Track loading attempts
+  const [loadAttempt, setLoadAttempt] = useState(0);
   
-  // Optimized data loading function with retry mechanism
+  // Reference to track if component is mounted
+  const isMounted = useRef(true);
+  
+  // Clean up function to prevent state updates after unmount
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+  
+  // Optimized data loading function with safety checks
   const loadUsers = useCallback(async () => {
+    if (!isMounted.current) return;
+    
     setIsLoading(true);
     setError(null);
     
     try {
       console.log('Loading users... (attempt ' + (loadAttempt + 1) + ')');
       const fetchedUsers = await getUsers();
+      
+      // Guard against component unmount during async operation
+      if (!isMounted.current) return;
       
       // Verify the response is an array
       if (Array.isArray(fetchedUsers)) {
@@ -45,63 +60,84 @@ export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions, ref
         toast.error('Falha ao carregar usuários: formato inválido');
       }
     } catch (error) {
+      // Guard against component unmount during async operation
+      if (!isMounted.current) return;
+      
       console.error('Failed to load users:', error);
       setUsers([]);
       setError('Falha ao carregar usuários');
       toast.error('Falha ao carregar usuários');
     } finally {
-      setIsLoading(false);
+      // Guard against component unmount
+      if (isMounted.current) {
+        setIsLoading(false);
+      }
     }
   }, [loadAttempt]);
   
   // Retry loading if previous attempt failed
   useEffect(() => {
-    if (error) {
-      const timer = setTimeout(() => {
+    if (!error) return;
+    
+    const timer = setTimeout(() => {
+      if (isMounted.current) {
         setLoadAttempt(prev => prev + 1);
-      }, 5000); // Retry after 5 seconds if there was an error
-      
-      return () => clearTimeout(timer);
-    }
+      }
+    }, 5000);
+    
+    return () => clearTimeout(timer);
   }, [error]);
   
   // Load users when component mounts or refreshTrigger changes
   useEffect(() => {
     console.log('UsersList effect triggered, refreshTrigger:', refreshTrigger, 'loadAttempt:', loadAttempt);
     loadUsers();
+    
+    // Clean up any pending operations
+    return () => {
+      // No specific cleanup needed beyond the isMounted check
+    };
   }, [loadUsers, refreshTrigger, loadAttempt]);
   
-  // Handle deletion confirmation
+  // Handle deletion confirmation with safety checks
   const handleConfirmDelete = () => {
-    if (!userToDelete) return;
+    if (!userToDelete || !isMounted.current) return;
     
     setIsDeleting(true);
     
-    // Perform deletion in a non-blocking way
-    setTimeout(async () => {
-      try {
-        await deleteUser(userToDelete.id);
+    // Perform deletion safely
+    deleteUser(userToDelete.id)
+      .then(() => {
+        if (!isMounted.current) return;
+        
         // Update state without doing a full reload
         setUsers(prevUsers => prevUsers.filter(user => user.id !== userToDelete.id));
         toast.success(`Usuário ${userToDelete.name} removido com sucesso`);
         setUserToDelete(null);
-      } catch (error) {
+      })
+      .catch(error => {
+        if (!isMounted.current) return;
+        
         console.error('Failed to delete user:', error);
         toast.error('Falha ao remover usuário');
-      } finally {
-        setIsDeleting(false);
-      }
-    }, 0);
+      })
+      .finally(() => {
+        if (isMounted.current) {
+          setIsDeleting(false);
+        }
+      });
   };
 
   // Handle delete user request
   const handleDeleteUser = (user: User) => {
-    setUserToDelete(user);
+    if (isMounted.current) {
+      setUserToDelete(user);
+    }
   };
   
   // Handle dialog close
   const handleDialogOpenChange = (open: boolean) => {
-    if (!open) {
+    if (!open && isMounted.current) {
       setUserToDelete(null);
     }
   };
@@ -136,12 +172,14 @@ export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions, ref
         onDelete={handleDeleteUser}
       />
       
-      <DeleteUserDialog
-        user={userToDelete}
-        isDeleting={isDeleting}
-        onOpenChange={handleDialogOpenChange}
-        onConfirmDelete={handleConfirmDelete}
-      />
+      {userToDelete && (
+        <DeleteUserDialog
+          user={userToDelete}
+          isDeleting={isDeleting}
+          onOpenChange={handleDialogOpenChange}
+          onConfirmDelete={handleConfirmDelete}
+        />
+      )}
     </>
   );
 };
