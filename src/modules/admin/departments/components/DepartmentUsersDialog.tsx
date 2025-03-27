@@ -40,6 +40,7 @@ export const DepartmentUsersDialog: React.FC<DepartmentUsersDialogProps> = ({
   const [departmentUsers, setDepartmentUsers] = useState<any[]>([]);
   // Ref to track component mounted state
   const isMounted = useRef(true);
+  const initialized = useRef(false);
   
   // Clean up function to prevent state updates after unmount
   useEffect(() => {
@@ -50,7 +51,9 @@ export const DepartmentUsersDialog: React.FC<DepartmentUsersDialogProps> = ({
   
   // Reset state when dialog opens/closes or department changes
   useEffect(() => {
-    if (open && department) {
+    if (open && department && !initialized.current) {
+      initialized.current = true;
+      
       // Use a safe timeout to prevent React reconciliation issues
       const timer = setTimeout(() => {
         if (isMounted.current) {
@@ -58,10 +61,13 @@ export const DepartmentUsersDialog: React.FC<DepartmentUsersDialogProps> = ({
             user.department === department.name
           );
           setDepartmentUsers(assignedUsers);
+          setSearchQuery('');
         }
       }, 50);
       
       return () => clearTimeout(timer);
+    } else if (!open) {
+      initialized.current = false;
     }
   }, [department, open]);
   
@@ -82,13 +88,18 @@ export const DepartmentUsersDialog: React.FC<DepartmentUsersDialogProps> = ({
   const toggleUserAssignment = (user: any) => {
     if (!isMounted.current) return;
     
-    setDepartmentUsers(prev => {
-      if (isUserInDepartment(user.id)) {
-        return prev.filter(u => u.id !== user.id);
-      } else {
-        return [...prev, user];
+    // Use setTimeout to avoid immediate DOM updates
+    setTimeout(() => {
+      if (isMounted.current) {
+        setDepartmentUsers(prev => {
+          if (isUserInDepartment(user.id)) {
+            return prev.filter(u => u.id !== user.id);
+          } else {
+            return [...prev, user];
+          }
+        });
       }
-    });
+    }, 10);
   };
   
   const handleSave = () => {
@@ -100,13 +111,12 @@ export const DepartmentUsersDialog: React.FC<DepartmentUsersDialogProps> = ({
     toast.success(`Usuários do departamento ${department.name} atualizados com sucesso`);
     
     // Safely close the dialog
-    if (isMounted.current) {
-      setTimeout(() => {
-        if (isMounted.current) {
-          onOpenChange(false);
-        }
-      }, 0);
-    }
+    setTimeout(() => {
+      if (isMounted.current) {
+        setSearchQuery('');
+        onOpenChange(false);
+      }
+    }, 100);
   };
   
   // Safely handle search input changes
@@ -120,8 +130,12 @@ export const DepartmentUsersDialog: React.FC<DepartmentUsersDialogProps> = ({
   const handleCloseDialog = () => {
     if (isMounted.current) {
       // Clear state before closing to prevent memory leaks
-      setSearchQuery('');
-      onOpenChange(false);
+      setTimeout(() => {
+        if (isMounted.current) {
+          setSearchQuery('');
+          onOpenChange(false);
+        }
+      }, 50);
     }
   };
   

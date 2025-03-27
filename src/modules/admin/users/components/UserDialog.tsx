@@ -61,6 +61,7 @@ export const UserDialog: React.FC<UserDialogProps> = ({
 }) => {
   const isEditing = !!user;
   const isMounted = useRef(true);
+  const formInitialized = useRef(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   
   // Cleanup function to prevent state updates after unmount
@@ -91,8 +92,11 @@ export const UserDialog: React.FC<UserDialogProps> = ({
   
   // Reset form when dialog opens or user changes
   useEffect(() => {
-    if (open) {
-      const timer = setTimeout(() => {
+    if (open && !formInitialized.current) {
+      formInitialized.current = true;
+      
+      // Use setTimeout to avoid DOM manipulation issues
+      setTimeout(() => {
         if (isMounted.current) {
           form.reset(isEditing 
             ? {
@@ -105,19 +109,20 @@ export const UserDialog: React.FC<UserDialogProps> = ({
             : {
                 name: '',
                 email: '',
+                password: '',
                 role: 'user',
                 department: '',
                 isActive: true,
               });
         }
       }, 50);
-      
-      return () => clearTimeout(timer);
+    } else if (!open) {
+      formInitialized.current = false;
     }
   }, [open, user, isEditing, form]);
   
   const handleSubmit = async (values: FormValues) => {
-    if (!isMounted.current) return;
+    if (!isMounted.current || isSubmitting) return;
     
     try {
       setIsSubmitting(true);
@@ -147,17 +152,22 @@ export const UserDialog: React.FC<UserDialogProps> = ({
       }
       
       if (isMounted.current) {
-        form.reset();
-        
         // Use setTimeout to avoid React reconciliation issues
         setTimeout(() => {
           if (isMounted.current) {
-            onOpenChange(false);
+            form.reset();
             
             if (onUserUpdated) {
               console.log('Triggering user updated callback');
               onUserUpdated();
             }
+            
+            // Close the dialog after a small delay
+            setTimeout(() => {
+              if (isMounted.current) {
+                onOpenChange(false);
+              }
+            }, 100);
           }
         }, 100);
       }
@@ -175,11 +185,14 @@ export const UserDialog: React.FC<UserDialogProps> = ({
   };
   
   const handleCloseDialog = () => {
-    if (isMounted.current) {
-      if (!isSubmitting) {
-        form.reset();
-        onOpenChange(false);
-      }
+    if (isMounted.current && !isSubmitting) {
+      // Use timeout to prevent React reconciliation issues
+      setTimeout(() => {
+        if (isMounted.current) {
+          form.reset();
+          onOpenChange(false);
+        }
+      }, 50);
     }
   };
   
@@ -275,7 +288,14 @@ export const UserDialog: React.FC<UserDialogProps> = ({
                   <FormItem>
                     <FormLabel>Departamento</FormLabel>
                     <Select 
-                      onValueChange={field.onChange} 
+                      onValueChange={(value) => {
+                        // Use setTimeout to prevent immediate DOM updates
+                        setTimeout(() => {
+                          if (isMounted.current) {
+                            field.onChange(value);
+                          }
+                        }, 10);
+                      }}
                       defaultValue={field.value}
                       value={field.value}
                     >
@@ -345,3 +365,4 @@ export const UserDialog: React.FC<UserDialogProps> = ({
     </Dialog>
   );
 };
+
