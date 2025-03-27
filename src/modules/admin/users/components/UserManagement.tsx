@@ -16,7 +16,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { UsersList } from './UsersList';
 import { DepartmentList } from './DepartmentList';
 import { UserDialog } from './UserDialog';
-import { DepartmentDialog } from './DepartmentDialog';
+import { DepartmentDialog } from './department';
 import { AccessRestrictionsDialog } from './AccessRestrictionsDialog';
 import { getDepartments } from '@/modules/admin/departments/api/departmentsService';
 import { Department } from '../data/departments';

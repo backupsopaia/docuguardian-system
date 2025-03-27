@@ -1,0 +1,2 @@
+
+export { DepartmentDialog } from './DepartmentDialog';
