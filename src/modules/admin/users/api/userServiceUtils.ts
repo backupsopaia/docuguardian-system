@@ -22,6 +22,37 @@ export const mapUserData = (userData: any): User => {
 };
 
 /**
+ * Map database user format to frontend format
+ */
+export const mapDbUserToFrontend = (dbUser: any): User => {
+  return {
+    id: dbUser.id,
+    name: dbUser.name,
+    email: dbUser.email,
+    role: dbUser.role || 'user',
+    department: dbUser.department || '',
+    isActive: dbUser.is_active !== undefined ? dbUser.is_active : true,
+    created_at: dbUser.created_at || new Date().toISOString(),
+    updated_at: dbUser.updated_at || new Date().toISOString()
+  };
+};
+
+/**
+ * Map frontend user format to database format
+ */
+export const mapFrontendUserToDb = (frontendUser: Omit<User, 'id'>): any => {
+  return {
+    name: frontendUser.name,
+    email: frontendUser.email,
+    role: frontendUser.role,
+    department: frontendUser.department,
+    is_active: frontendUser.isActive,
+    // Include password only if it exists
+    ...(frontendUser.password ? { password: frontendUser.password } : {})
+  };
+};
+
+/**
  * Create mock user data for testing
  */
 export const createMockUserData = (count: number = 10): User[] => {
