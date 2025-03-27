@@ -51,15 +51,17 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
   const handleClick = () => {
     if (submenu && submenu.length > 0) {
       setIsSubmenuOpen(!isSubmenuOpen);
-    } else {
+    } else if (to && to !== '#') {
       navigate(to);
       if (onClick) onClick();
     }
   };
   
   const handleSubmenuItemClick = (submenuTo: string) => {
-    navigate(submenuTo);
-    if (onClick) onClick();
+    if (submenuTo && submenuTo !== '#') {
+      navigate(submenuTo);
+      if (onClick) onClick();
+    }
   };
   
   const buttonContent = (

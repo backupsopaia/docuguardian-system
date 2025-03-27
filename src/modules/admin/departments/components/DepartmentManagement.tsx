@@ -11,7 +11,6 @@ import {
   ShieldAlertIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { DepartmentList } from '@/modules/admin/users/components/DepartmentList';
 import { DepartmentDialog } from '@/modules/admin/users/components/DepartmentDialog';
@@ -46,6 +45,7 @@ const DepartmentManagement: React.FC = () => {
       const depts = await getDepartments();
       setDepartments(depts);
     } catch (error) {
+      console.error('Error loading departments:', error);
       toast({
         title: "Erro ao carregar departamentos",
         description: "Não foi possível carregar a lista de departamentos.",

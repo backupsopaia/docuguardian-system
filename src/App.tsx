@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -31,7 +30,14 @@ import ReportsPage from "./pages/admin/documents/ReportsPage";
 import MainLayout from "./components/layouts/MainLayout";
 
 // QueryClient instance
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false
+    }
+  }
+});
 
 // Main App component with routes nested inside providers
 const App = () => (
@@ -123,13 +129,13 @@ const AppRoutes = () => (
       <Route path="dashboard" element={<UserDashboard />} />
       
       {/* Document routes */}
-      <Route path="documents" element={<div>Meus Documentos</div>} />
+      <Route path="documents" element={<PlaceholderPage title="Meus Documentos" />} />
       <Route path="documents/pending" element={<PlaceholderPage title="Documentos Pendentes" />} />
       <Route path="documents/recent" element={<PlaceholderPage title="Documentos Recentes" />} />
       
       {/* Other user routes */}
-      <Route path="shared" element={<div>Compartilhados Comigo</div>} />
-      <Route path="recent" element={<div>Atividade Recente</div>} />
+      <Route path="shared" element={<PlaceholderPage title="Compartilhados Comigo" />} />
+      <Route path="recent" element={<PlaceholderPage title="Atividade Recente" />} />
       <Route path="storage" element={<StoragePage />} />
     </Route>
     
@@ -186,9 +192,9 @@ const AppRoutes = () => (
       <Route path="users" element={<UserManagement />} />
       <Route path="security" element={<Security />} />
       <Route path="departments" element={<DepartmentManagement />} />
-      <Route path="audit" element={<div>Logs de Auditoria</div>} />
+      <Route path="audit" element={<PlaceholderPage title="Logs de Auditoria" />} />
       <Route path="storage" element={<StoragePage />} />
-      <Route path="reports" element={<div>Relatórios</div>} />
+      <Route path="reports" element={<PlaceholderPage title="Relatórios" />} />
     </Route>
     
     {/* 404 */}
