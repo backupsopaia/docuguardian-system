@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -21,6 +22,7 @@ export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions, ref
   const [loadAttempt, setLoadAttempt] = useState(0);
   
   const isMounted = useRef(true);
+  const deleteInProgress = useRef(false);
   
   useEffect(() => {
     return () => {
@@ -93,14 +95,14 @@ export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions, ref
     };
   }, [loadUsers, refreshTrigger, loadAttempt]);
   
-  const handleConfirmDelete = () => {
-    if (!userToDelete || !isMounted.current) return;
+  const handleConfirmDelete = useCallback(() => {
+    if (!userToDelete || !isMounted.current || deleteInProgress.current) return;
     
+    deleteInProgress.current = true;
     setIsDeleting(true);
     
+    // Use setTimeout to break potential state update cycles that might cause freezing
     setTimeout(async () => {
-      if (!isMounted.current || !userToDelete) return;
-      
       try {
         await deleteUser(userToDelete.id);
         
@@ -108,7 +110,6 @@ export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions, ref
         
         setUsers(prevUsers => prevUsers.filter(user => user.id !== userToDelete.id));
         toast.success(`Usuário ${userToDelete.name} removido com sucesso`);
-        setUserToDelete(null);
       } catch (error) {
         if (!isMounted.current) return;
         
@@ -117,22 +118,24 @@ export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions, ref
       } finally {
         if (isMounted.current) {
           setIsDeleting(false);
+          setUserToDelete(null); // Clear the user to delete immediately after operation
+          deleteInProgress.current = false;
         }
       }
-    }, 0);
-  };
+    }, 10);
+  }, [userToDelete]);
 
-  const handleDeleteUser = (user: User) => {
-    if (isMounted.current) {
+  const handleDeleteUser = useCallback((user: User) => {
+    if (isMounted.current && !deleteInProgress.current) {
       setUserToDelete(user);
     }
-  };
+  }, []);
   
-  const handleDialogOpenChange = (open: boolean) => {
-    if (!open && isMounted.current) {
+  const handleDialogOpenChange = useCallback((open: boolean) => {
+    if (!open && isMounted.current && !isDeleting) {
       setUserToDelete(null);
     }
-  };
+  }, [isDeleting]);
   
   if (isLoading) {
     return (

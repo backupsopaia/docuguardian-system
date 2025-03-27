@@ -26,8 +26,21 @@ export const DeleteUserDialog: React.FC<DeleteUserDialogProps> = ({
   onOpenChange,
   onConfirmDelete
 }) => {
+  // Prevent propagation of events to avoid state conflicts
+  const handleConfirmDelete = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onConfirmDelete();
+  };
+
+  const handleOpenChange = (open: boolean) => {
+    if (!isDeleting) {
+      onOpenChange(open);
+    }
+  };
+
   return (
-    <AlertDialog open={true} onOpenChange={onOpenChange}>
+    <AlertDialog open={true} onOpenChange={handleOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
@@ -39,10 +52,7 @@ export const DeleteUserDialog: React.FC<DeleteUserDialogProps> = ({
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
           <AlertDialogAction 
-            onClick={(e) => {
-              e.preventDefault();
-              onConfirmDelete();
-            }}
+            onClick={handleConfirmDelete}
             className="bg-destructive hover:bg-destructive/90"
             disabled={isDeleting}
           >
