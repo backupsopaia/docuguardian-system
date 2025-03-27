@@ -1,14 +1,13 @@
 
 import { Department } from '@/modules/admin/users/data/departments';
 import { apiFetch } from '@/lib/api';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, fromTable } from '@/integrations/supabase/client';
 
 // Get all departments
 export const getDepartments = async (): Promise<Department[]> => {
   try {
     // Try to fetch departments from Supabase directly
-    const { data, error } = await supabase
-      .from('departments')
+    const { data, error } = await fromTable<Department>('departments')
       .select('*');
       
     if (error) throw error;
@@ -38,8 +37,7 @@ export const getDepartments = async (): Promise<Department[]> => {
 export const getDepartmentById = async (id: string): Promise<Department | undefined> => {
   try {
     // Try to fetch the department from Supabase directly
-    const { data, error } = await supabase
-      .from('departments')
+    const { data, error } = await fromTable<Department>('departments')
       .select('*')
       .eq('id', id)
       .single();
@@ -70,11 +68,10 @@ export const getDepartmentById = async (id: string): Promise<Department | undefi
 export const createDepartment = async (departmentData: Omit<Department, 'id' | 'userCount'>): Promise<Department> => {
   try {
     // Try to create a department in Supabase directly
-    const { data, error } = await supabase
-      .from('departments')
+    const { data, error } = await fromTable<Department>('departments')
       .insert({ 
         ...departmentData,
-        userCount: 0
+        user_count: 0
       })
       .select()
       .single();
@@ -116,8 +113,7 @@ export const createDepartment = async (departmentData: Omit<Department, 'id' | '
 export const updateDepartment = async (id: string, departmentData: Partial<Department>): Promise<Department> => {
   try {
     // Try to update the department in Supabase directly
-    const { data, error } = await supabase
-      .from('departments')
+    const { data, error } = await fromTable<Department>('departments')
       .update(departmentData)
       .eq('id', id)
       .select()
@@ -160,8 +156,7 @@ export const updateDepartment = async (id: string, departmentData: Partial<Depar
 export const deleteDepartment = async (id: string): Promise<boolean> => {
   try {
     // Try to delete the department from Supabase directly
-    const { error } = await supabase
-      .from('departments')
+    const { error } = await fromTable('departments')
       .delete()
       .eq('id', id);
       
@@ -191,8 +186,7 @@ export const deleteDepartment = async (id: string): Promise<boolean> => {
 export const assignDocumentToDepartment = async (documentId: string, departmentId: string): Promise<boolean> => {
   try {
     // Try to update the document in Supabase directly
-    const { error } = await supabase
-      .from('documents')
+    const { error } = await fromTable('documents')
       .update({ department_id: departmentId })
       .eq('id', documentId);
       
@@ -222,8 +216,7 @@ export const assignDocumentToDepartment = async (documentId: string, departmentI
 export const getDocumentsByDepartment = async (departmentId: string): Promise<any[]> => {
   try {
     // Try to fetch documents from Supabase directly
-    const { data, error } = await supabase
-      .from('documents')
+    const { data, error } = await fromTable('documents')
       .select('*')
       .eq('department_id', departmentId);
       

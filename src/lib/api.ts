@@ -1,6 +1,5 @@
-
 import { useAuth } from '@/modules/auth';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, fromTable } from '@/integrations/supabase/client';
 
 /**
  * API error class for standardized error handling
@@ -91,8 +90,7 @@ export const apiFetch = async <T>(
     if (collection) {
       // For simple GET requests, try to use Supabase as fallback
       if (options.method === 'GET' || !options.method) {
-        const { data, error: supabaseError } = await supabase
-          .from(collection)
+        const { data, error: supabaseError } = await fromTable(collection)
           .select('*');
           
         if (supabaseError) throw new ApiError(supabaseError.message, 500, supabaseError);
@@ -102,8 +100,7 @@ export const apiFetch = async <T>(
       // For POST requests (create)
       if (options.method === 'POST' && options.body) {
         const payload = JSON.parse(options.body.toString());
-        const { data, error: supabaseError } = await supabase
-          .from(collection)
+        const { data, error: supabaseError } = await fromTable(collection)
           .insert(payload)
           .select();
           
@@ -117,8 +114,7 @@ export const apiFetch = async <T>(
         const payload = JSON.parse(options.body.toString());
         
         if (id) {
-          const { data, error: supabaseError } = await supabase
-            .from(collection)
+          const { data, error: supabaseError } = await fromTable(collection)
             .update(payload)
             .eq('id', id)
             .select();
@@ -133,8 +129,7 @@ export const apiFetch = async <T>(
         const id = endpoint.split('/').filter(Boolean)[1];
         
         if (id) {
-          const { error: supabaseError } = await supabase
-            .from(collection)
+          const { error: supabaseError } = await fromTable(collection)
             .delete()
             .eq('id', id);
             
