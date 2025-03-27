@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -32,6 +33,7 @@ import { toast } from 'sonner';
 import { Switch } from '@/components/ui/switch';
 import { departments } from '@/modules/admin/users/data/departments';
 import { createUser, updateUser, User } from '@/modules/admin/users/api/userService';
+import { Loader2 } from 'lucide-react';
 
 const formSchema = z.object({
   name: z.string().min(3, { message: 'Nome deve ter pelo menos 3 caracteres' }),
@@ -51,8 +53,22 @@ interface UserDialogProps {
   onUserUpdated?: () => void;
 }
 
-export const UserDialog: React.FC<UserDialogProps> = ({ open, onOpenChange, user, onUserUpdated }) => {
+export const UserDialog: React.FC<UserDialogProps> = ({ 
+  open, 
+  onOpenChange, 
+  user, 
+  onUserUpdated 
+}) => {
   const isEditing = !!user;
+  const isMounted = useRef(true);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  
+  // Cleanup function to prevent state updates after unmount
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
   
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -73,31 +89,44 @@ export const UserDialog: React.FC<UserDialogProps> = ({ open, onOpenChange, user
         },
   });
   
-  React.useEffect(() => {
+  // Reset form when dialog opens or user changes
+  useEffect(() => {
     if (open) {
-      form.reset(isEditing 
-        ? {
-            name: user?.name || '',
-            email: user?.email || '',
-            role: user?.role || 'user',
-            department: user?.department || '',
-            isActive: user?.isActive || true,
-          }
-        : {
-            name: '',
-            email: '',
-            role: 'user',
-            department: '',
-            isActive: true,
-          });
+      const timer = setTimeout(() => {
+        if (isMounted.current) {
+          form.reset(isEditing 
+            ? {
+                name: user?.name || '',
+                email: user?.email || '',
+                role: user?.role || 'user',
+                department: user?.department || '',
+                isActive: user?.isActive || true,
+              }
+            : {
+                name: '',
+                email: '',
+                role: 'user',
+                department: '',
+                isActive: true,
+              });
+        }
+      }, 50);
+      
+      return () => clearTimeout(timer);
     }
   }, [open, user, isEditing, form]);
   
   const handleSubmit = async (values: FormValues) => {
+    if (!isMounted.current) return;
+    
     try {
+      setIsSubmitting(true);
+      
       if (isEditing && user) {
         await updateUser(user.id, values);
-        toast.success(`Usuário ${values.name} atualizado com sucesso`);
+        if (isMounted.current) {
+          toast.success(`Usuário ${values.name} atualizado com sucesso`);
+        }
       } else {
         const newUser: Omit<User, 'id'> = {
           name: values.name,
@@ -111,29 +140,51 @@ export const UserDialog: React.FC<UserDialogProps> = ({ open, onOpenChange, user
         console.log('Creating new user:', newUser);
         const createdUser = await createUser(newUser);
         console.log('User created successfully:', createdUser);
-        toast.success(`Usuário ${values.name} criado com sucesso`);
+        
+        if (isMounted.current) {
+          toast.success(`Usuário ${values.name} criado com sucesso`);
+        }
       }
       
-      form.reset();
-      onOpenChange(false);
-      
-      if (onUserUpdated) {
-        console.log('Triggering user updated callback');
-        onUserUpdated();
+      if (isMounted.current) {
+        form.reset();
+        
+        // Use setTimeout to avoid React reconciliation issues
+        setTimeout(() => {
+          if (isMounted.current) {
+            onOpenChange(false);
+            
+            if (onUserUpdated) {
+              console.log('Triggering user updated callback');
+              onUserUpdated();
+            }
+          }
+        }, 100);
       }
     } catch (error) {
       console.error('Error saving user:', error);
-      toast.error(`Erro ao ${isEditing ? 'atualizar' : 'criar'} usuário`);
+      if (isMounted.current) {
+        toast.error(`Erro ao ${isEditing ? 'atualizar' : 'criar'} usuário`);
+        setIsSubmitting(false);
+      }
+    } finally {
+      if (isMounted.current) {
+        setIsSubmitting(false);
+      }
+    }
+  };
+  
+  const handleCloseDialog = () => {
+    if (isMounted.current) {
+      if (!isSubmitting) {
+        form.reset();
+        onOpenChange(false);
+      }
     }
   };
   
   return (
-    <Dialog open={open} onOpenChange={(newOpen) => {
-      if (!newOpen) {
-        form.reset();
-      }
-      onOpenChange(newOpen);
-    }}>
+    <Dialog open={open} onOpenChange={handleCloseDialog}>
       <DialogContent className="sm:max-w-[525px]">
         <DialogHeader>
           <DialogTitle>{isEditing ? 'Editar Usuário' : 'Adicionar Usuário'}</DialogTitle>
@@ -272,12 +323,20 @@ export const UserDialog: React.FC<UserDialogProps> = ({ open, onOpenChange, user
               <Button 
                 type="button" 
                 variant="outline" 
-                onClick={() => onOpenChange(false)}
+                onClick={handleCloseDialog}
+                disabled={isSubmitting}
               >
                 Cancelar
               </Button>
-              <Button type="submit">
-                {isEditing ? 'Atualizar' : 'Criar'}
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {isEditing ? 'Atualizando...' : 'Criando...'}
+                  </>
+                ) : (
+                  isEditing ? 'Atualizar' : 'Criar'
+                )}
               </Button>
             </DialogFooter>
           </form>

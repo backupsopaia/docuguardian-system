@@ -50,17 +50,18 @@ export const DepartmentUsersDialog: React.FC<DepartmentUsersDialogProps> = ({
   
   // Reset state when dialog opens/closes or department changes
   useEffect(() => {
-    if (open && department && isMounted.current) {
-      // In a real app, you would fetch users assigned to this department
-      // Use setTimeout to prevent race conditions
-      setTimeout(() => {
+    if (open && department) {
+      // Use a safe timeout to prevent React reconciliation issues
+      const timer = setTimeout(() => {
         if (isMounted.current) {
           const assignedUsers = mockUsers.filter(user => 
             user.department === department.name
           );
           setDepartmentUsers(assignedUsers);
         }
-      }, 0);
+      }, 50);
+      
+      return () => clearTimeout(timer);
     }
   }, [department, open]);
   
@@ -81,11 +82,13 @@ export const DepartmentUsersDialog: React.FC<DepartmentUsersDialogProps> = ({
   const toggleUserAssignment = (user: any) => {
     if (!isMounted.current) return;
     
-    if (isUserInDepartment(user.id)) {
-      setDepartmentUsers(prev => prev.filter(u => u.id !== user.id));
-    } else {
-      setDepartmentUsers(prev => [...prev, user]);
-    }
+    setDepartmentUsers(prev => {
+      if (isUserInDepartment(user.id)) {
+        return prev.filter(u => u.id !== user.id);
+      } else {
+        return [...prev, user];
+      }
+    });
   };
   
   const handleSave = () => {
@@ -95,7 +98,15 @@ export const DepartmentUsersDialog: React.FC<DepartmentUsersDialogProps> = ({
     console.log('Saving department users:', departmentUsers);
     
     toast.success(`Usuários do departamento ${department.name} atualizados com sucesso`);
-    onOpenChange(false);
+    
+    // Safely close the dialog
+    if (isMounted.current) {
+      setTimeout(() => {
+        if (isMounted.current) {
+          onOpenChange(false);
+        }
+      }, 0);
+    }
   };
   
   // Safely handle search input changes
