@@ -12,6 +12,6 @@ const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
 // Type-safe helper for working with dynamic table names
-export const fromTable = <T = any>(table: string) => {
+export const fromTable = <T = any>(table: keyof Database['public']['Tables'] | string) => {
   return supabase.from(table as any) as any;
 };

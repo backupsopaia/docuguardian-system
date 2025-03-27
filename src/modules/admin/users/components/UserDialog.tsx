@@ -32,6 +32,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Switch } from '@/components/ui/switch';
 import { departments } from '@/modules/admin/users/data/departments';
+import { createUser, updateUser, User } from '@/modules/admin/users/api/userService';
 
 const formSchema = z.object({
   name: z.string().min(3, { message: 'Nome deve ter pelo menos 3 caracteres' }),
@@ -45,10 +46,11 @@ const formSchema = z.object({
 interface UserDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  user: any | null;
+  user: User | null;
+  onUserUpdated?: () => void;
 }
 
-export const UserDialog: React.FC<UserDialogProps> = ({ open, onOpenChange, user }) => {
+export const UserDialog: React.FC<UserDialogProps> = ({ open, onOpenChange, user, onUserUpdated }) => {
   const isEditing = !!user;
   
   const form = useForm<z.infer<typeof formSchema>>({
@@ -70,18 +72,27 @@ export const UserDialog: React.FC<UserDialogProps> = ({ open, onOpenChange, user
         },
   });
   
-  const handleSubmit = (values: z.infer<typeof formSchema>) => {
-    // In a real app, you would make an API call here
-    console.log(values);
-    
-    toast.success(
-      isEditing 
-        ? `Usuário ${values.name} atualizado com sucesso` 
-        : `Usuário ${values.name} criado com sucesso`
-    );
-    
-    form.reset();
-    onOpenChange(false);
+  const handleSubmit = async (values: z.infer<typeof formSchema>) => {
+    try {
+      if (isEditing && user) {
+        await updateUser(user.id, values);
+        toast.success(`Usuário ${values.name} atualizado com sucesso`);
+      } else {
+        await createUser(values);
+        toast.success(`Usuário ${values.name} criado com sucesso`);
+      }
+      
+      form.reset();
+      onOpenChange(false);
+      
+      // Refresh the user list
+      if (onUserUpdated) {
+        onUserUpdated();
+      }
+    } catch (error) {
+      console.error('Error saving user:', error);
+      toast.error(`Erro ao ${isEditing ? 'atualizar' : 'criar'} usuário`);
+    }
   };
   
   return (

@@ -20,13 +20,14 @@ import { DepartmentDialog } from './DepartmentDialog';
 import { AccessRestrictionsDialog } from './AccessRestrictionsDialog';
 import { getDepartments } from '@/modules/admin/departments/api/departmentsService';
 import { Department } from '../data/departments';
+import { User } from '../api/userService';
 
 const UserManagement: React.FC = () => {
   const [activeTab, setActiveTab] = useState('users');
   const [userDialogOpen, setUserDialogOpen] = useState(false);
   const [departmentDialogOpen, setDepartmentDialogOpen] = useState(false);
   const [restrictionsDialogOpen, setRestrictionsDialogOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<any>(null);
+  const [editingItem, setEditingItem] = useState<User | Department | null>(null);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   
@@ -53,7 +54,7 @@ const UserManagement: React.FC = () => {
     setUserDialogOpen(true);
   };
   
-  const handleEditUser = (user: any) => {
+  const handleEditUser = (user: User) => {
     setEditingItem(user);
     setUserDialogOpen(true);
   };
@@ -68,13 +69,18 @@ const UserManagement: React.FC = () => {
     setDepartmentDialogOpen(true);
   };
   
-  const handleOpenRestrictions = (user: any) => {
+  const handleOpenRestrictions = (user: User) => {
     setEditingItem(user);
     setRestrictionsDialogOpen(true);
   };
 
   const handleDepartmentUpdated = () => {
     loadDepartments();
+  };
+
+  const handleUserUpdated = () => {
+    // This will be passed to UserDialog to trigger a refresh in UsersList
+    // The UsersList component has its own internal state management
   };
   
   return (
@@ -148,20 +154,21 @@ const UserManagement: React.FC = () => {
       <UserDialog 
         open={userDialogOpen} 
         onOpenChange={setUserDialogOpen}
-        user={editingItem}
+        user={editingItem as User}
+        onUserUpdated={handleUserUpdated}
       />
       
       <DepartmentDialog
         open={departmentDialogOpen}
         onOpenChange={setDepartmentDialogOpen}
-        department={editingItem}
+        department={editingItem as Department}
         onSuccess={handleDepartmentUpdated}
       />
       
       <AccessRestrictionsDialog
         open={restrictionsDialogOpen}
         onOpenChange={setRestrictionsDialogOpen}
-        user={editingItem}
+        user={editingItem as User}
       />
     </div>
   );
