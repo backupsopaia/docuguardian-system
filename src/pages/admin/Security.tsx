@@ -5,7 +5,10 @@ import SecurityAlerts from '@/components/admin/dashboard/SecurityAlerts';
 import LoginActivityMonitor from '@/components/admin/dashboard/LoginActivityMonitor';
 import SecuritySettings from '@/components/admin/security/SecuritySettings';
 import AuditLogs from '@/components/admin/security/AuditLogs';
+import LoginAuditLogs from '@/components/admin/security/LoginAuditLogs';
+import RolesPermissions from '@/components/admin/security/RolesPermissions';
 import { securityAlerts, loginAttempts } from '@/modules/admin/dashboard/data/security';
+import { ShieldCheck, UserCog, AlertTriangle, History, Settings } from 'lucide-react';
 
 const Security = () => {
   return (
@@ -18,10 +21,27 @@ const Security = () => {
       </div>
 
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-          <TabsTrigger value="logs">Logs de Auditoria</TabsTrigger>
-          <TabsTrigger value="settings">Configurações</TabsTrigger>
+        <TabsList className="flex flex-wrap">
+          <TabsTrigger value="overview" className="flex items-center gap-1">
+            <AlertTriangle className="h-4 w-4" />
+            Visão Geral
+          </TabsTrigger>
+          <TabsTrigger value="roles" className="flex items-center gap-1">
+            <ShieldCheck className="h-4 w-4" />
+            Papéis e Permissões
+          </TabsTrigger>
+          <TabsTrigger value="login-logs" className="flex items-center gap-1">
+            <UserCog className="h-4 w-4" />
+            Logs de Login
+          </TabsTrigger>
+          <TabsTrigger value="logs" className="flex items-center gap-1">
+            <History className="h-4 w-4" />
+            Logs de Auditoria
+          </TabsTrigger>
+          <TabsTrigger value="settings" className="flex items-center gap-1">
+            <Settings className="h-4 w-4" />
+            Configurações
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -29,6 +49,14 @@ const Security = () => {
             <SecurityAlerts alerts={securityAlerts} />
             <LoginActivityMonitor loginAttempts={loginAttempts} />
           </div>
+        </TabsContent>
+
+        <TabsContent value="roles">
+          <RolesPermissions />
+        </TabsContent>
+
+        <TabsContent value="login-logs">
+          <LoginAuditLogs />
         </TabsContent>
 
         <TabsContent value="logs">

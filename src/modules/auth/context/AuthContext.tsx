@@ -14,10 +14,17 @@ interface User {
   lastLogin: Date;
 }
 
+interface AuthState {
+  user: User | null;
+  token: string | null;
+  tokenExpiry: number | null;
+}
+
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  token: string | null;
   login: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
   logout: () => void;
   error: string | null;
@@ -25,24 +32,105 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Helper function to create a JWT-like token (for demo purposes)
+const createMockToken = (user: Omit<User, 'password'>, expiresIn = 3600): { token: string, expiry: number } => {
+  // In a real app, this would be handled by a server
+  const expiryTime = Date.now() + expiresIn * 1000; // Convert seconds to milliseconds
+  
+  // Simulate JWT structure with header, payload, and signature
+  const payload = {
+    sub: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    exp: Math.floor(expiryTime / 1000) // Expiry in seconds
+  };
+  
+  // This is not a real JWT, just a mock for demonstration
+  const token = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.${btoa(JSON.stringify(payload))}.mock-signature`;
+  
+  return { token, expiry: expiryTime };
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [authState, setAuthState] = useState<AuthState>({
+    user: null,
+    token: null,
+    tokenExpiry: null
+  });
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
-
+  
+  // Load auth state from localStorage on initial load
   useEffect(() => {
-    const savedUser = localStorage.getItem('dms_user');
-    if (savedUser) {
+    const savedAuth = localStorage.getItem('dms_auth');
+    if (savedAuth) {
       try {
-        setUser(JSON.parse(savedUser));
+        const parsedAuth = JSON.parse(savedAuth) as AuthState;
+        
+        // Check if token is expired
+        if (parsedAuth.tokenExpiry && parsedAuth.tokenExpiry > Date.now()) {
+          setAuthState(parsedAuth);
+          
+          // Auto-refresh token if it's about to expire
+          const timeToExpiry = parsedAuth.tokenExpiry - Date.now();
+          if (timeToExpiry < 300000) { // Less than 5 minutes to expiry
+            refreshToken(parsedAuth.user);
+          }
+        } else {
+          // Token expired, clear storage
+          localStorage.removeItem('dms_auth');
+        }
       } catch (e) {
-        console.error('Failed to parse saved user', e);
-        localStorage.removeItem('dms_user');
+        console.error('Failed to parse saved auth state', e);
+        localStorage.removeItem('dms_auth');
       }
     }
     setIsLoading(false);
   }, []);
+  
+  // Set up token refresh interval
+  useEffect(() => {
+    if (authState.user && authState.tokenExpiry) {
+      const timeToExpiry = authState.tokenExpiry - Date.now();
+      
+      // If token expires in less than 5 minutes, refresh it now
+      if (timeToExpiry < 300000 && timeToExpiry > 0) {
+        refreshToken(authState.user);
+      }
+      
+      // Set up auto-refresh for tokens
+      const refreshInterval = setInterval(() => {
+        if (authState.user) {
+          refreshToken(authState.user);
+        }
+      }, 1000 * 60 * 15); // Refresh every 15 minutes
+      
+      return () => clearInterval(refreshInterval);
+    }
+  }, [authState.user, authState.tokenExpiry]);
+
+  const refreshToken = (user: User) => {
+    console.log('Refreshing token for user:', user.email);
+    const { token, expiry } = createMockToken(user, 3600); // 1 hour expiry
+    
+    setAuthState(prev => ({
+      ...prev,
+      token,
+      tokenExpiry: expiry
+    }));
+    
+    // Update localStorage if we're in a persistent session
+    const savedAuth = localStorage.getItem('dms_auth');
+    if (savedAuth) {
+      localStorage.setItem('dms_auth', JSON.stringify({
+        user,
+        token,
+        tokenExpiry: expiry
+      }));
+    }
+  };
 
   const login = async (email: string, password: string, rememberMe = false) => {
     setIsLoading(true);
@@ -61,10 +149,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       const { password: _, ...userWithoutPassword } = foundUser;
       
-      setUser(userWithoutPassword);
+      // Create a mock JWT token
+      const { token, expiry } = createMockToken(userWithoutPassword);
+      
+      // Log the login activity (in a real app, this would be sent to the server)
+      console.log('Login activity:', {
+        user: userWithoutPassword.email,
+        timestamp: new Date().toISOString(),
+        ip: '127.0.0.1', // Mock data
+        device: 'Web Browser'
+      });
+      
+      const newAuthState = {
+        user: userWithoutPassword,
+        token,
+        tokenExpiry: expiry
+      };
+      
+      setAuthState(newAuthState);
       
       if (rememberMe) {
-        localStorage.setItem('dms_user', JSON.stringify(userWithoutPassword));
+        localStorage.setItem('dms_auth', JSON.stringify(newAuthState));
       }
       
       toast.success(`Welcome back, ${userWithoutPassword.name}!`);
@@ -84,8 +189,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = () => {
-    setUser(null);
-    localStorage.removeItem('dms_user');
+    // Log the logout activity (in a real app, this would be sent to the server)
+    if (authState.user) {
+      console.log('Logout activity:', {
+        user: authState.user.email,
+        timestamp: new Date().toISOString(),
+        ip: '127.0.0.1', // Mock data
+        device: 'Web Browser'
+      });
+    }
+    
+    setAuthState({
+      user: null,
+      token: null,
+      tokenExpiry: null
+    });
+    localStorage.removeItem('dms_auth');
     toast.success('You have been logged out successfully');
     navigate('/login');
   };
@@ -93,9 +212,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return (
     <AuthContext.Provider
       value={{
-        user,
-        isAuthenticated: !!user,
+        user: authState.user,
+        isAuthenticated: !!authState.user,
         isLoading,
+        token: authState.token,
         login,
         logout,
         error
