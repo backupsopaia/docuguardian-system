@@ -9,6 +9,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { EyeIcon, EyeOffIcon, KeyIcon, MailIcon, ShieldIcon } from 'lucide-react';
 import { useAuth } from '@/modules/auth';
 import Logo from '@/components/Logo';
+import { HelpTooltip } from '@/components/ui/help-tooltip';
+import { useHelp } from '@/context/HelpContext';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -16,6 +18,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const { login, isLoading, error } = useAuth();
+  const { showContextHelp } = useHelp();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,7 +36,15 @@ const Login = () => {
           <p className="text-dms-neutral-300">Enterprise-grade security for your documents</p>
         </div>
         
-        <Card className="w-full backdrop-blur-sm bg-white/10 border-white/20 text-white shadow-xl animate-fade-in">
+        <Card className="w-full backdrop-blur-sm bg-white/10 border-white/20 text-white shadow-xl animate-fade-in relative">
+          <div className="absolute right-3 top-3">
+            <HelpTooltip 
+              helpId="login" 
+              className="text-white/70 hover:text-white" 
+              text="Clique para mais informações sobre a tela de login"
+            />
+          </div>
+          
           <CardHeader>
             <CardTitle className="text-xl font-medium">Sign In</CardTitle>
             <CardDescription className="text-dms-neutral-300">
@@ -50,7 +61,14 @@ const Login = () => {
               )}
               
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-dms-neutral-200">Email</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="email" className="text-dms-neutral-200">Email</Label>
+                  <HelpTooltip 
+                    helpId="login-email" 
+                    text="Digite seu email de acesso. Para teste, use admin@docuguardian.com" 
+                    side="top"
+                  />
+                </div>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <MailIcon className="h-5 w-5 text-dms-neutral-400" />
@@ -68,7 +86,14 @@ const Login = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-dms-neutral-200">Password</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password" className="text-dms-neutral-200">Password</Label>
+                  <HelpTooltip 
+                    helpId="login-password" 
+                    text="Digite sua senha. Para teste, use admin123 ou user123" 
+                    side="top"
+                  />
+                </div>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <KeyIcon className="h-5 w-5 text-dms-neutral-400" />

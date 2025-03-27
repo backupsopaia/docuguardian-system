@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -5,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./modules/auth";
 import { ThemeProvider } from "./context/ThemeContext";
+import { HelpProvider } from "./context/HelpContext";
 
 // Pages
 import Login from "./pages/Login";
@@ -38,9 +40,11 @@ const App = () => (
       <BrowserRouter>
         <ThemeProvider>
           <AuthProvider>
-            <AppRoutes />
-            <Toaster />
-            <Sonner />
+            <HelpProvider>
+              <AppRoutes />
+              <Toaster />
+              <Sonner />
+            </HelpProvider>
           </AuthProvider>
         </ThemeProvider>
       </BrowserRouter>
