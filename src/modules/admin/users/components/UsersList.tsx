@@ -91,11 +91,17 @@ export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions, ref
   // Load users when component mounts or refreshTrigger changes
   useEffect(() => {
     console.log('UsersList effect triggered, refreshTrigger:', refreshTrigger, 'loadAttempt:', loadAttempt);
-    loadUsers();
+    
+    // Use setTimeout to prevent immediate execution that might cause DOM manipulation issues
+    const timer = setTimeout(() => {
+      if (isMounted.current) {
+        loadUsers();
+      }
+    }, 0);
     
     // Clean up any pending operations
     return () => {
-      // No specific cleanup needed beyond the isMounted check
+      clearTimeout(timer);
     };
   }, [loadUsers, refreshTrigger, loadAttempt]);
   
@@ -105,27 +111,31 @@ export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions, ref
     
     setIsDeleting(true);
     
-    // Perform deletion safely
-    deleteUser(userToDelete.id)
-      .then(() => {
+    // Wrap in setTimeout to prevent immediate execution
+    setTimeout(async () => {
+      if (!isMounted.current || !userToDelete) return;
+      
+      try {
+        // Perform deletion safely
+        await deleteUser(userToDelete.id);
+        
         if (!isMounted.current) return;
         
         // Update state without doing a full reload
         setUsers(prevUsers => prevUsers.filter(user => user.id !== userToDelete.id));
         toast.success(`Usuário ${userToDelete.name} removido com sucesso`);
         setUserToDelete(null);
-      })
-      .catch(error => {
+      } catch (error) {
         if (!isMounted.current) return;
         
         console.error('Failed to delete user:', error);
         toast.error('Falha ao remover usuário');
-      })
-      .finally(() => {
+      } finally {
         if (isMounted.current) {
           setIsDeleting(false);
         }
-      });
+      }
+    }, 0);
   };
 
   // Handle delete user request
