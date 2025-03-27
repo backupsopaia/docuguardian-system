@@ -46,30 +46,43 @@ export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions, ref
   const [error, setError] = useState<string | null>(null);
   
   const loadUsers = useCallback(async () => {
-    setIsLoading(true);
+    // Don't set loading state if we're already loading
+    if (!isLoading) {
+      setIsLoading(true);
+    }
     setError(null);
     
     try {
-      const fetchedUsers = await getUsers();
-      
-      // Ensure fetchedUsers is an array before setting state
-      if (Array.isArray(fetchedUsers)) {
-        setUsers(fetchedUsers);
-      } else {
-        console.error('Expected users to be an array but got:', fetchedUsers);
-        setUsers([]);
-        setError('Failed to load users: Invalid data format');
-        toast.error('Falha ao carregar usuários: formato inválido');
-      }
+      // Wrap in a setTimeout to prevent UI freezing
+      setTimeout(async () => {
+        try {
+          const fetchedUsers = await getUsers();
+          
+          // Ensure fetchedUsers is an array before setting state
+          if (Array.isArray(fetchedUsers)) {
+            setUsers(fetchedUsers);
+          } else {
+            console.error('Expected users to be an array but got:', fetchedUsers);
+            setUsers([]);
+            setError('Failed to load users: Invalid data format');
+            toast.error('Falha ao carregar usuários: formato inválido');
+          }
+        } catch (error) {
+          console.error('Failed to load users:', error);
+          setUsers([]);
+          setError('Failed to load users');
+          toast.error('Falha ao carregar usuários');
+        } finally {
+          setIsLoading(false);
+        }
+      }, 0);
     } catch (error) {
-      console.error('Failed to load users:', error);
-      setUsers([]);
-      setError('Failed to load users');
-      toast.error('Falha ao carregar usuários');
-    } finally {
+      console.error('Error in setTimeout:', error);
       setIsLoading(false);
+      setError('An unexpected error occurred');
+      toast.error('Erro inesperado ao carregar usuários');
     }
-  }, []);
+  }, [isLoading]);
   
   useEffect(() => {
     loadUsers();
@@ -79,17 +92,21 @@ export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions, ref
     if (!userToDelete) return;
     
     setIsDeleting(true);
-    try {
-      await deleteUser(userToDelete.id);
-      setUsers(users.filter(user => user.id !== userToDelete.id));
-      toast.success(`Usuário ${userToDelete.name} removido com sucesso`);
-      setUserToDelete(null);
-    } catch (error) {
-      console.error('Failed to delete user:', error);
-      toast.error('Falha ao remover usuário');
-    } finally {
-      setIsDeleting(false);
-    }
+    
+    // Wrap in setTimeout to prevent UI freezing
+    setTimeout(async () => {
+      try {
+        await deleteUser(userToDelete.id);
+        setUsers(users.filter(user => user.id !== userToDelete.id));
+        toast.success(`Usuário ${userToDelete.name} removido com sucesso`);
+        setUserToDelete(null);
+      } catch (error) {
+        console.error('Failed to delete user:', error);
+        toast.error('Falha ao remover usuário');
+      } finally {
+        setIsDeleting(false);
+      }
+    }, 0);
   };
   
   if (isLoading) {

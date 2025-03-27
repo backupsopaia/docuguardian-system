@@ -16,7 +16,18 @@ export interface User {
 // Get all users
 export const getUsers = async (): Promise<User[]> => {
   try {
-    const { data, error } = await fromTable('users').select('*');
+    // Add timeout to prevent indefinite hanging
+    const timeoutPromise = new Promise<{data: null, error: Error}>(resolve => {
+      setTimeout(() => {
+        resolve({
+          data: null,
+          error: new Error('Request timed out after 10 seconds')
+        });
+      }, 10000);
+    });
+
+    const fetchPromise = fromTable('users').select('*');
+    const { data, error } = await Promise.race([fetchPromise, timeoutPromise]);
     
     if (error) {
       console.error('Error fetching users:', error);
@@ -29,6 +40,12 @@ export const getUsers = async (): Promise<User[]> => {
         department: user.department,
         isActive: user.isActive
       }));
+    }
+    
+    // Handle null or undefined data
+    if (!data) {
+      console.error('No data returned from API');
+      return [];
     }
     
     // Ensure data is an array
@@ -63,6 +80,9 @@ export const getUsers = async (): Promise<User[]> => {
 // Create a new user
 export const createUser = async (userData: Omit<User, 'id'>): Promise<User> => {
   try {
+    // Add a small delay to prevent UI freeze
+    await new Promise(resolve => setTimeout(resolve, 50));
+    
     // Transform frontend format to database format
     const dbUser = {
       name: userData.name,
@@ -77,6 +97,11 @@ export const createUser = async (userData: Omit<User, 'id'>): Promise<User> => {
     if (error) {
       console.error('Error creating user:', error);
       throw new Error(error.message);
+    }
+    
+    // Handle case where data is null or not an array
+    if (!data || !Array.isArray(data) || data.length === 0) {
+      throw new Error('Failed to create user: No data returned');
     }
     
     // Map response back to frontend format
@@ -98,6 +123,9 @@ export const createUser = async (userData: Omit<User, 'id'>): Promise<User> => {
 // Update an existing user
 export const updateUser = async (id: string, userData: Partial<User>): Promise<User> => {
   try {
+    // Add a small delay to prevent UI freeze
+    await new Promise(resolve => setTimeout(resolve, 50));
+    
     // Transform frontend format to database format
     const dbUser: Record<string, any> = {};
     
@@ -115,6 +143,11 @@ export const updateUser = async (id: string, userData: Partial<User>): Promise<U
     if (error) {
       console.error('Error updating user:', error);
       throw new Error(error.message);
+    }
+    
+    // Handle case where data is null or not an array
+    if (!data || !Array.isArray(data) || data.length === 0) {
+      throw new Error('Failed to update user: No data returned');
     }
     
     // Map response back to frontend format
@@ -136,6 +169,9 @@ export const updateUser = async (id: string, userData: Partial<User>): Promise<U
 // Delete a user
 export const deleteUser = async (id: string): Promise<void> => {
   try {
+    // Add a small delay to prevent UI freeze
+    await new Promise(resolve => setTimeout(resolve, 50));
+    
     const { error } = await fromTable('users').delete().eq('id', id);
     
     if (error) {
