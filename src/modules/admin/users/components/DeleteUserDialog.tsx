@@ -1,6 +1,6 @@
 
-import React from 'react';
-import {
+import React, { useEffect } from 'react';
+import { 
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -8,9 +8,8 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle,
+  AlertDialogTitle
 } from "@/components/ui/alert-dialog";
-import { Loader2 } from 'lucide-react';
 import { User } from '../api/types';
 
 interface DeleteUserDialogProps {
@@ -26,42 +25,61 @@ export const DeleteUserDialog: React.FC<DeleteUserDialogProps> = ({
   onOpenChange,
   onConfirmDelete
 }) => {
-  // Prevent propagation of events to avoid state conflicts
-  const handleConfirmDelete = (e: React.MouseEvent) => {
+  const [open, setOpen] = React.useState(true);
+  
+  // Sincroniza o estado aberto/fechado entre o componente pai e filho
+  useEffect(() => {
+    if (!open) {
+      // Usa setTimeout para evitar atualizações de estado em cascata
+      setTimeout(() => {
+        onOpenChange(false);
+      }, 0);
+    }
+  }, [open, onOpenChange]);
+  
+  const handleConfirm = (e: React.MouseEvent) => {
+    // Impede propagação de eventos que possam interferir em outros componentes
     e.preventDefault();
     e.stopPropagation();
-    onConfirmDelete();
+    
+    // Usa setTimeout para evitar potenciais ciclos de atualização de estado
+    setTimeout(() => {
+      onConfirmDelete();
+    }, 0);
   };
-
-  const handleOpenChange = (open: boolean) => {
-    if (!isDeleting) {
-      onOpenChange(open);
-    }
+  
+  const handleCancel = (e: React.MouseEvent) => {
+    // Impede propagação de eventos que possam interferir em outros componentes
+    e.preventDefault();
+    e.stopPropagation();
+    
+    setOpen(false);
   };
-
+  
   return (
-    <AlertDialog open={true} onOpenChange={handleOpenChange}>
-      <AlertDialogContent className="w-[95%] max-w-md mx-auto">
+    <AlertDialog open={open} onOpenChange={setOpen}>
+      <AlertDialogContent className="max-w-[90%] sm:max-w-md">
         <AlertDialogHeader>
-          <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+          <AlertDialogTitle>Confirmação de exclusão</AlertDialogTitle>
           <AlertDialogDescription>
-            Tem certeza que deseja remover o usuário <strong>{user.name}</strong>?<br />
+            Você tem certeza que deseja excluir o usuário <strong>{user.name}</strong>?
             Esta ação não pode ser desfeita.
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter className="flex-col sm:flex-row gap-2">
-          <AlertDialogCancel disabled={isDeleting} className="mt-0">Cancelar</AlertDialogCancel>
-          <AlertDialogAction 
-            onClick={handleConfirmDelete}
-            className="bg-destructive hover:bg-destructive/90"
-            disabled={isDeleting}
+        <AlertDialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
+          <AlertDialogCancel 
+            onClick={handleCancel}
+            disabled={isDeleting} 
+            className="mt-0 w-full sm:w-auto"
           >
-            {isDeleting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Removendo...
-              </>
-            ) : 'Remover'}
+            Cancelar
+          </AlertDialogCancel>
+          <AlertDialogAction 
+            onClick={handleConfirm}
+            disabled={isDeleting} 
+            className="w-full sm:w-auto bg-destructive hover:bg-destructive/90"
+          >
+            {isDeleting ? 'Excluindo...' : 'Excluir'}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

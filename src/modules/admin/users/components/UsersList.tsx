@@ -23,7 +23,9 @@ export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions, ref
   
   const isMounted = useRef(true);
   const deleteInProgress = useRef(false);
+  const lastRefreshTrigger = useRef(refreshTrigger);
   
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
       isMounted.current = false;
@@ -33,28 +35,48 @@ export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions, ref
   const loadUsers = useCallback(async () => {
     if (!isMounted.current) return;
     
+    // Evita múltiplas chamadas simultâneas
+    if (isLoading) return;
+    
     setIsLoading(true);
     setError(null);
     
     try {
       console.log('Loading users... (attempt ' + (loadAttempt + 1) + ')');
-      const fetchedUsers = await getUsers();
       
-      if (!isMounted.current) return;
-      
-      if (Array.isArray(fetchedUsers)) {
-        console.log(`Successfully loaded ${fetchedUsers.length} users`);
-        setUsers(fetchedUsers);
-        
-        if (fetchedUsers.length === 0 && loadAttempt > 0) {
-          toast.info('Nenhum usuário encontrado no sistema');
+      // Usa setTimeout para quebrar potenciais ciclos de atualizações de estado
+      setTimeout(async () => {
+        try {
+          const fetchedUsers = await getUsers();
+          
+          if (!isMounted.current) return;
+          
+          if (Array.isArray(fetchedUsers)) {
+            console.log(`Successfully loaded ${fetchedUsers.length} users`);
+            setUsers(fetchedUsers);
+            
+            if (fetchedUsers.length === 0 && loadAttempt > 0) {
+              toast.info('Nenhum usuário encontrado no sistema');
+            }
+          } else {
+            console.error('Expected users to be an array but got:', typeof fetchedUsers);
+            setUsers([]);
+            setError('Falha ao carregar usuários: formato inválido');
+            toast.error('Falha ao carregar usuários: formato inválido');
+          }
+        } catch (innerError) {
+          if (!isMounted.current) return;
+          
+          console.error('Failed to load users:', innerError);
+          setUsers([]);
+          setError('Falha ao carregar usuários');
+          toast.error('Falha ao carregar usuários');
+        } finally {
+          if (isMounted.current) {
+            setIsLoading(false);
+          }
         }
-      } else {
-        console.error('Expected users to be an array but got:', typeof fetchedUsers);
-        setUsers([]);
-        setError('Falha ao carregar usuários: formato inválido');
-        toast.error('Falha ao carregar usuários: formato inválido');
-      }
+      }, 0);
     } catch (error) {
       if (!isMounted.current) return;
       
@@ -62,13 +84,11 @@ export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions, ref
       setUsers([]);
       setError('Falha ao carregar usuários');
       toast.error('Falha ao carregar usuários');
-    } finally {
-      if (isMounted.current) {
-        setIsLoading(false);
-      }
+      setIsLoading(false);
     }
-  }, [loadAttempt]);
+  }, [loadAttempt, isLoading]);
   
+  // Tentar novamente se houver erro
   useEffect(() => {
     if (!error) return;
     
@@ -81,19 +101,32 @@ export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions, ref
     return () => clearTimeout(timer);
   }, [error]);
   
+  // Efeito para carregar usuários quando muda o refreshTrigger
   useEffect(() => {
+    // Evita carregamentos duplicados
+    if (lastRefreshTrigger.current === refreshTrigger) return;
+    lastRefreshTrigger.current = refreshTrigger;
+    
     console.log('UsersList effect triggered, refreshTrigger:', refreshTrigger, 'loadAttempt:', loadAttempt);
     
+    // Usa setTimeout para evitar renderizações em cascata
     const timer = setTimeout(() => {
-      if (isMounted.current) {
+      if (isMounted.current && !isLoading) {
         loadUsers();
       }
-    }, 0);
+    }, 50);
     
     return () => {
       clearTimeout(timer);
     };
-  }, [loadUsers, refreshTrigger, loadAttempt]);
+  }, [loadUsers, refreshTrigger, loadAttempt, isLoading]);
+  
+  // Carregamento inicial
+  useEffect(() => {
+    if (!isLoading && users.length === 0 && !error) {
+      loadUsers();
+    }
+  }, [loadUsers, isLoading, users.length, error]);
   
   const handleConfirmDelete = useCallback(() => {
     if (!userToDelete || !isMounted.current || deleteInProgress.current) return;
@@ -101,13 +134,14 @@ export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions, ref
     deleteInProgress.current = true;
     setIsDeleting(true);
     
-    // Use setTimeout to break potential state update cycles that might cause freezing
+    // Use setTimeout para quebrar potenciais ciclos de atualizações de estado
     setTimeout(async () => {
       try {
         await deleteUser(userToDelete.id);
         
         if (!isMounted.current) return;
         
+        // Atualiza a lista de usuários sem recarregar toda a lista
         setUsers(prevUsers => prevUsers.filter(user => user.id !== userToDelete.id));
         toast.success(`Usuário ${userToDelete.name} removido com sucesso`);
       } catch (error) {
@@ -118,7 +152,7 @@ export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions, ref
       } finally {
         if (isMounted.current) {
           setIsDeleting(false);
-          setUserToDelete(null); // Clear the user to delete immediately after operation
+          setUserToDelete(null); // Limpa o usuário para excluir imediatamente após a operação
           deleteInProgress.current = false;
         }
       }
@@ -137,7 +171,11 @@ export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions, ref
     }
   }, [isDeleting]);
   
-  if (isLoading) {
+  const handleRetry = useCallback(() => {
+    setLoadAttempt(prev => prev + 1);
+  }, []);
+  
+  if (isLoading && users.length === 0) {
     return (
       <div className="flex justify-center items-center p-4 sm:p-8">
         <p className="text-muted-foreground">Carregando usuários...</p>
@@ -145,11 +183,11 @@ export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions, ref
     );
   }
   
-  if (error) {
+  if (error && users.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center p-4 sm:p-8 gap-4">
         <p className="text-destructive">{error}</p>
-        <Button onClick={() => setLoadAttempt(prev => prev + 1)} variant="outline">
+        <Button onClick={handleRetry} variant="outline">
           Tentar novamente
         </Button>
       </div>
