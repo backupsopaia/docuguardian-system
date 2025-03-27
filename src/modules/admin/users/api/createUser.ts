@@ -1,7 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { User, UserResponse } from './types';
-import { mapDbUserToFrontend } from './userServiceUtils';
+import { mapDbUserToFrontend, mapFrontendUserToDb } from './userServiceUtils';
 
 // Create a new user with improved Supabase integration
 export const createUser = async (userData: Omit<User, 'id'>): Promise<User> => {
@@ -9,13 +9,7 @@ export const createUser = async (userData: Omit<User, 'id'>): Promise<User> => {
     console.log('Creating user in database with data:', userData);
     
     // Transform frontend format to database format
-    const dbUser = {
-      name: userData.name,
-      email: userData.email,
-      role: userData.role,
-      department: userData.department,
-      is_active: userData.isActive
-    };
+    const dbUser = mapFrontendUserToDb(userData);
     
     console.log('Transformed data for database:', dbUser);
     

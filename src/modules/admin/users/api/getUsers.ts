@@ -1,38 +1,42 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { User } from './types';
-import { createMockUserData, mapDbUserToFrontend } from './userServiceUtils';
+import { mapDbUserToFrontend, createMockUserData } from './userServiceUtils';
 
-// Get all users with improved error handling and direct Supabase query
+/**
+ * Fetches all users from the database
+ */
 export const getUsers = async (): Promise<User[]> => {
   try {
     console.log('Fetching users from database...');
     
-    // Query users directly from the 'users' table with proper handling
-    const { data, error } = await supabase.from('users').select('*');
+    // Fetch users from Supabase
+    const { data, error } = await supabase
+      .from('users')
+      .select('*');
     
+    // Handle error from Supabase
     if (error) {
-      console.error('Error fetching users:', error);
-      console.log('Falling back to mock data due to error');
+      console.error('Error fetching users from Supabase:', error);
+      console.log('Falling back to mock data...');
+      // Fall back to mock data
       return createMockUserData();
     }
     
-    // Log successful data retrieval
-    console.log(`Successfully fetched ${data?.length || 0} users from database`);
-    
-    // Handle null or undefined data
-    if (!data || !Array.isArray(data)) {
-      console.error('No data or invalid data returned from Supabase');
-      return [];
+    // If no data is returned, or empty array, fall back to mock data
+    if (!data || data.length === 0) {
+      console.log('No users found in database, falling back to mock data...');
+      return createMockUserData();
     }
     
-    // Map database users to frontend model
-    const mappedUsers = data.map(user => mapDbUserToFrontend(user));
-    console.log('Mapped users to frontend model:', mappedUsers.length);
-    return mappedUsers;
+    console.log(`Successfully fetched ${data.length} users from database`);
+    
+    // Map DB users to frontend format
+    return data.map(mapDbUserToFrontend);
   } catch (error) {
-    console.error('Unexpected error fetching users:', error);
-    // Return mock data as fallback
+    console.error('Error in getUsers:', error);
+    console.log('Falling back to mock data due to error...');
+    // Fall back to mock data in case of error
     return createMockUserData();
   }
 };
