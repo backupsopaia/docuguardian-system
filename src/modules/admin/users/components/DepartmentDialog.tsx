@@ -26,6 +26,7 @@ import { toast } from 'sonner';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { createDepartment, updateDepartment } from '@/modules/admin/departments/api/departmentsService';
+import { Department } from '../data/departments';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Nome deve ter pelo menos 2 caracteres' }),
@@ -38,7 +39,7 @@ type FormValues = z.infer<typeof formSchema>;
 interface DepartmentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  department: any | null;
+  department: Department | null;
   onSuccess?: () => void;
 }
 
@@ -86,11 +87,17 @@ export const DepartmentDialog: React.FC<DepartmentDialogProps> = ({
     try {
       setIsSubmitting(true);
       
-      if (isEditing) {
+      if (isEditing && department) {
         await updateDepartment(department.id, values);
         toast.success(`Departamento ${values.name} atualizado com sucesso`);
       } else {
-        await createDepartment(values);
+        // Make sure we're passing required fields to createDepartment
+        const newDepartment = {
+          name: values.name,
+          description: values.description,
+          isActive: values.isActive
+        };
+        await createDepartment(newDepartment);
         toast.success(`Departamento ${values.name} criado com sucesso`);
       }
       

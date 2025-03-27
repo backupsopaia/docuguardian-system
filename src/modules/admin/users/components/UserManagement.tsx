@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Plus, 
   FileEdit, 
@@ -18,6 +18,8 @@ import { DepartmentList } from './DepartmentList';
 import { UserDialog } from './UserDialog';
 import { DepartmentDialog } from './DepartmentDialog';
 import { AccessRestrictionsDialog } from './AccessRestrictionsDialog';
+import { getDepartments } from '@/modules/admin/departments/api/departmentsService';
+import { Department } from '../data/departments';
 
 const UserManagement: React.FC = () => {
   const [activeTab, setActiveTab] = useState('users');
@@ -25,6 +27,26 @@ const UserManagement: React.FC = () => {
   const [departmentDialogOpen, setDepartmentDialogOpen] = useState(false);
   const [restrictionsDialogOpen, setRestrictionsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  
+  useEffect(() => {
+    if (activeTab === 'departments') {
+      loadDepartments();
+    }
+  }, [activeTab]);
+
+  const loadDepartments = async () => {
+    try {
+      setIsLoading(true);
+      const depts = await getDepartments();
+      setDepartments(depts);
+    } catch (error) {
+      console.error('Error loading departments:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
   
   const handleAddUser = () => {
     setEditingItem(null);
@@ -41,7 +63,7 @@ const UserManagement: React.FC = () => {
     setDepartmentDialogOpen(true);
   };
   
-  const handleEditDepartment = (department: any) => {
+  const handleEditDepartment = (department: Department) => {
     setEditingItem(department);
     setDepartmentDialogOpen(true);
   };
@@ -49,6 +71,10 @@ const UserManagement: React.FC = () => {
   const handleOpenRestrictions = (user: any) => {
     setEditingItem(user);
     setRestrictionsDialogOpen(true);
+  };
+
+  const handleDepartmentUpdated = () => {
+    loadDepartments();
   };
   
   return (
@@ -108,7 +134,12 @@ const UserManagement: React.FC = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <DepartmentList onEdit={handleEditDepartment} />
+              <DepartmentList 
+                departments={departments}
+                isLoading={isLoading}
+                onEdit={handleEditDepartment}
+                onDepartmentUpdated={handleDepartmentUpdated}
+              />
             </CardContent>
           </Card>
         </TabsContent>
@@ -124,6 +155,7 @@ const UserManagement: React.FC = () => {
         open={departmentDialogOpen}
         onOpenChange={setDepartmentDialogOpen}
         department={editingItem}
+        onSuccess={handleDepartmentUpdated}
       />
       
       <AccessRestrictionsDialog
