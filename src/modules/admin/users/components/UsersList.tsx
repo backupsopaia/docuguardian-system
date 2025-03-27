@@ -45,59 +45,57 @@ export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions, ref
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  const loadUsers = useCallback(async () => {
-    // Don't set loading state if we're already loading
+  // Optimized data loading function that doesn't block the UI
+  const loadUsers = useCallback(() => {
     if (!isLoading) {
       setIsLoading(true);
     }
     setError(null);
     
-    try {
-      // Wrap in a setTimeout to prevent UI freezing
-      setTimeout(async () => {
-        try {
-          const fetchedUsers = await getUsers();
-          
-          // Ensure fetchedUsers is an array before setting state
-          if (Array.isArray(fetchedUsers)) {
-            setUsers(fetchedUsers);
-          } else {
-            console.error('Expected users to be an array but got:', fetchedUsers);
-            setUsers([]);
-            setError('Failed to load users: Invalid data format');
-            toast.error('Falha ao carregar usuários: formato inválido');
-          }
-        } catch (error) {
-          console.error('Failed to load users:', error);
+    // Use a micro-task to prevent UI blocking
+    const fetchData = async () => {
+      try {
+        const fetchedUsers = await getUsers();
+        
+        // Ensure we're working with an array before setting state
+        if (Array.isArray(fetchedUsers)) {
+          setUsers(fetchedUsers);
+        } else {
+          console.error('Expected users to be an array but got:', typeof fetchedUsers);
           setUsers([]);
-          setError('Failed to load users');
-          toast.error('Falha ao carregar usuários');
-        } finally {
-          setIsLoading(false);
+          setError('Failed to load users: Invalid data format');
+          toast.error('Falha ao carregar usuários: formato inválido');
         }
-      }, 0);
-    } catch (error) {
-      console.error('Error in setTimeout:', error);
-      setIsLoading(false);
-      setError('An unexpected error occurred');
-      toast.error('Erro inesperado ao carregar usuários');
-    }
+      } catch (error) {
+        console.error('Failed to load users:', error);
+        setUsers([]);
+        setError('Failed to load users');
+        toast.error('Falha ao carregar usuários');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    // Use a microtask to prevent UI blocking
+    setTimeout(fetchData, 0);
   }, [isLoading]);
   
   useEffect(() => {
     loadUsers();
   }, [loadUsers, refreshTrigger]);
   
-  const handleDelete = async () => {
+  // Optimized deletion that doesn't block the UI
+  const handleDelete = () => {
     if (!userToDelete) return;
     
     setIsDeleting(true);
     
-    // Wrap in setTimeout to prevent UI freezing
-    setTimeout(async () => {
+    // Perform deletion in a non-blocking way
+    const performDelete = async () => {
       try {
         await deleteUser(userToDelete.id);
-        setUsers(users.filter(user => user.id !== userToDelete.id));
+        // Update state without doing a full reload
+        setUsers(prevUsers => prevUsers.filter(user => user.id !== userToDelete.id));
         toast.success(`Usuário ${userToDelete.name} removido com sucesso`);
         setUserToDelete(null);
       } catch (error) {
@@ -106,9 +104,13 @@ export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions, ref
       } finally {
         setIsDeleting(false);
       }
-    }, 0);
+    };
+    
+    // Use setTimeout to offload the work from the main thread
+    setTimeout(performDelete, 0);
   };
   
+  // Loading state
   if (isLoading) {
     return (
       <div className="flex justify-center items-center p-8">
@@ -117,6 +119,7 @@ export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions, ref
     );
   }
   
+  // Error state
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center p-8 gap-4">
@@ -128,6 +131,7 @@ export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions, ref
     );
   }
   
+  // Main render of the table
   return (
     <>
       <div className="rounded-md border">

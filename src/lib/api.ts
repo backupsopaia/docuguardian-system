@@ -1,3 +1,4 @@
+
 import { useAuth } from '@/modules/auth';
 import { supabase, fromTable } from '@/integrations/supabase/client';
 
@@ -23,13 +24,20 @@ export const API_BASE_URL = '/api';
 
 /**
  * API fetch utility that automatically handles auth tokens and standardized responses
- * Now includes Supabase integration as fallback
+ * Now includes improved error handling and Supabase integration as fallback
  */
 export const apiFetch = async <T>(
   endpoint: string,
   options: RequestInit = {},
   token?: string | null
 ): Promise<T> => {
+  // Create a timeout promise to prevent hanging requests
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    setTimeout(() => {
+      reject(new ApiError('Request timed out after 15 seconds', 408));
+    }, 15000);
+  });
+
   try {
     const url = `${API_BASE_URL}${endpoint}`;
     
@@ -51,8 +59,11 @@ export const apiFetch = async <T>(
       headers
     };
     
-    // Execute the request
-    const response = await fetch(url, requestOptions);
+    // Execute the request with a timeout
+    const response = await Promise.race([
+      fetch(url, requestOptions),
+      timeoutPromise
+    ]);
     
     // Handle empty responses (204 No Content)
     if (response.status === 204) {
@@ -84,71 +95,102 @@ export const apiFetch = async <T>(
   } catch (error) {
     console.log('API fetch failed, attempting to use Supabase directly:', error);
     
-    // Extract the collection name from the endpoint
-    const collection = endpoint.split('/').filter(Boolean)[0];
-    
-    if (collection) {
-      // For simple GET requests, try to use Supabase as fallback
-      if (options.method === 'GET' || !options.method) {
-        const { data, error: supabaseError } = await fromTable(collection)
-          .select('*');
+    // Try Supabase as a fallback
+    return new Promise((resolve, reject) => {
+      // Use setTimeout to prevent UI blocking
+      setTimeout(async () => {
+        try {
+          // Extract the collection name from the endpoint
+          const collection = endpoint.split('/').filter(Boolean)[0];
           
-        if (supabaseError) throw new ApiError(supabaseError.message, 500, supabaseError);
-        return data as T;
-      }
-      
-      // For POST requests (create)
-      if (options.method === 'POST' && options.body) {
-        const payload = JSON.parse(options.body.toString());
-        const { data, error: supabaseError } = await fromTable(collection)
-          .insert(payload)
-          .select();
+          if (collection) {
+            // For simple GET requests, try to use Supabase as fallback
+            if (options.method === 'GET' || !options.method) {
+              const { data, error: supabaseError } = await fromTable(collection)
+                .select('*');
+                
+              if (supabaseError) {
+                reject(new ApiError(supabaseError.message, 500, supabaseError));
+                return;
+              }
+              
+              resolve(data as T);
+              return;
+            }
+            
+            // For POST requests (create)
+            if (options.method === 'POST' && options.body) {
+              const payload = JSON.parse(options.body.toString());
+              const { data, error: supabaseError } = await fromTable(collection)
+                .insert(payload)
+                .select();
+                
+              if (supabaseError) {
+                reject(new ApiError(supabaseError.message, 500, supabaseError));
+                return;
+              }
+              
+              resolve(data as T);
+              return;
+            }
+            
+            // For PUT requests (update)
+            if (options.method === 'PUT' && options.body) {
+              const id = endpoint.split('/').filter(Boolean)[1];
+              const payload = JSON.parse(options.body.toString());
+              
+              if (id) {
+                const { data, error: supabaseError } = await fromTable(collection)
+                  .update(payload)
+                  .eq('id', id)
+                  .select();
+                  
+                if (supabaseError) {
+                  reject(new ApiError(supabaseError.message, 500, supabaseError));
+                  return;
+                }
+                
+                resolve(data as T);
+                return;
+              }
+            }
+            
+            // For DELETE requests
+            if (options.method === 'DELETE') {
+              const id = endpoint.split('/').filter(Boolean)[1];
+              
+              if (id) {
+                const { error: supabaseError } = await fromTable(collection)
+                  .delete()
+                  .eq('id', id);
+                  
+                if (supabaseError) {
+                  reject(new ApiError(supabaseError.message, 500, supabaseError));
+                  return;
+                }
+                
+                resolve({} as T);
+                return;
+              }
+            }
+          }
           
-        if (supabaseError) throw new ApiError(supabaseError.message, 500, supabaseError);
-        return data as T;
-      }
-      
-      // For PUT requests (update)
-      if (options.method === 'PUT' && options.body) {
-        const id = endpoint.split('/').filter(Boolean)[1];
-        const payload = JSON.parse(options.body.toString());
-        
-        if (id) {
-          const { data, error: supabaseError } = await fromTable(collection)
-            .update(payload)
-            .eq('id', id)
-            .select();
-            
-          if (supabaseError) throw new ApiError(supabaseError.message, 500, supabaseError);
-          return data as T;
+          // If we get here, we couldn't handle the request with Supabase
+          // Fallback to original error
+          if (error instanceof ApiError) {
+            reject(error);
+          } else {
+            reject(new ApiError(
+              error instanceof Error ? error.message : 'Unknown error occurred',
+              500
+            ));
+          }
+        } catch (err) {
+          console.error('Error in Supabase fallback:', err);
+          reject(err);
         }
-      }
-      
-      // For DELETE requests
-      if (options.method === 'DELETE') {
-        const id = endpoint.split('/').filter(Boolean)[1];
-        
-        if (id) {
-          const { error: supabaseError } = await fromTable(collection)
-            .delete()
-            .eq('id', id);
-            
-          if (supabaseError) throw new ApiError(supabaseError.message, 500, supabaseError);
-          return {} as T;
-        }
-      }
-    }
-    
-    // If we get here, we couldn't handle the request with Supabase
-    // Fallback to original error
-    if (error instanceof ApiError) {
-      throw error;
-    }
-    
-    throw new ApiError(
-      error instanceof Error ? error.message : 'Unknown error occurred',
-      500
-    );
+      }, 0);
+    });
   }
 };
 
