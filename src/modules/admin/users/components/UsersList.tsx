@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { FileEdit, Trash2, ShieldCheck, UserCog } from 'lucide-react';
 import {
@@ -35,9 +34,10 @@ import { getUsers, deleteUser, User } from '@/modules/admin/users/api/userServic
 interface UsersListProps {
   onEdit: (user: User) => void;
   onPermissions: (user: User) => void;
+  refreshTrigger?: number;
 }
 
-export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions }) => {
+export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions, refreshTrigger }) => {
   const [users, setUsers] = useState<User[]>([]);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -58,7 +58,7 @@ export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions }) =
   
   useEffect(() => {
     loadUsers();
-  }, [loadUsers]);
+  }, [loadUsers, refreshTrigger]);
   
   const handleDelete = async () => {
     if (!userToDelete) return;
@@ -66,7 +66,6 @@ export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions }) =
     setIsDeleting(true);
     try {
       await deleteUser(userToDelete.id);
-      // Update the local state after successful deletion
       setUsers(users.filter(user => user.id !== userToDelete.id));
       toast.success(`Usuário ${userToDelete.name} removido com sucesso`);
       setUserToDelete(null);
@@ -76,6 +75,10 @@ export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions }) =
     } finally {
       setIsDeleting(false);
     }
+  };
+  
+  const refreshUsers = () => {
+    loadUsers();
   };
   
   if (isLoading) {
@@ -175,7 +178,7 @@ export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions }) =
             <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
             <AlertDialogAction 
               onClick={e => {
-                e.preventDefault(); // Prevent dialog from closing automatically
+                e.preventDefault();
                 handleDelete();
               }} 
               className="bg-destructive text-destructive-foreground"

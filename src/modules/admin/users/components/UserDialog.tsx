@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -102,7 +101,7 @@ export const UserDialog: React.FC<UserDialogProps> = ({ open, onOpenChange, user
         await updateUser(user.id, values);
         toast.success(`Usuário ${values.name} atualizado com sucesso`);
       } else {
-        // For creation, ensure all required fields are present
+        // For creation, we need to ensure all required fields are present
         const newUser: Omit<User, 'id'> = {
           name: values.name,
           email: values.email,
@@ -123,11 +122,9 @@ export const UserDialog: React.FC<UserDialogProps> = ({ open, onOpenChange, user
       // Close dialog
       onOpenChange(false);
       
-      // Refresh the user list with a small delay to ensure DB operation completes
+      // Call the callback immediately to refresh the user list
       if (onUserUpdated) {
-        setTimeout(() => {
-          onUserUpdated();
-        }, 100);
+        onUserUpdated();
       }
     } catch (error) {
       console.error('Error saving user:', error);

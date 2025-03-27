@@ -30,6 +30,7 @@ const UserManagement: React.FC = () => {
   const [editingItem, setEditingItem] = useState<User | Department | null>(null);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0); // Add this to trigger refreshes
   
   useEffect(() => {
     if (activeTab === 'departments') {
@@ -78,9 +79,9 @@ const UserManagement: React.FC = () => {
     loadDepartments();
   };
 
+  // Update this function to trigger a refresh of the UsersList
   const handleUserUpdated = () => {
-    // This will be passed to UserDialog to trigger a refresh in UsersList
-    // The UsersList component has its own internal state management
+    setRefreshTrigger(prev => prev + 1); // Increment to trigger a refresh
   };
   
   return (
@@ -125,7 +126,8 @@ const UserManagement: React.FC = () => {
             <CardContent>
               <UsersList 
                 onEdit={handleEditUser} 
-                onPermissions={handleOpenRestrictions} 
+                onPermissions={handleOpenRestrictions}
+                refreshTrigger={refreshTrigger} // Add this prop
               />
             </CardContent>
           </Card>
