@@ -8,6 +8,7 @@ export interface User {
   isActive: boolean;
   created_at?: string;
   updated_at?: string;
+  password?: string; // Added optional password field
 }
 
 // Response types for better type safety
