@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { FileEdit, Trash2, ShieldCheck, UserCog } from 'lucide-react';
 import {
@@ -42,14 +43,28 @@ export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions, ref
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   const loadUsers = useCallback(async () => {
     setIsLoading(true);
+    setError(null);
+    
     try {
       const fetchedUsers = await getUsers();
-      setUsers(fetchedUsers);
+      
+      // Ensure fetchedUsers is an array before setting state
+      if (Array.isArray(fetchedUsers)) {
+        setUsers(fetchedUsers);
+      } else {
+        console.error('Expected users to be an array but got:', fetchedUsers);
+        setUsers([]);
+        setError('Failed to load users: Invalid data format');
+        toast.error('Falha ao carregar usuários: formato inválido');
+      }
     } catch (error) {
       console.error('Failed to load users:', error);
+      setUsers([]);
+      setError('Failed to load users');
       toast.error('Falha ao carregar usuários');
     } finally {
       setIsLoading(false);
@@ -77,14 +92,21 @@ export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions, ref
     }
   };
   
-  const refreshUsers = () => {
-    loadUsers();
-  };
-  
   if (isLoading) {
     return (
       <div className="flex justify-center items-center p-8">
         <p className="text-muted-foreground">Carregando usuários...</p>
+      </div>
+    );
+  }
+  
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8 gap-4">
+        <p className="text-destructive">{error}</p>
+        <Button onClick={loadUsers} variant="outline">
+          Tentar novamente
+        </Button>
       </div>
     );
   }

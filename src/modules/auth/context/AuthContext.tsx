@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -178,7 +179,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           body: JSON.stringify({ email, password })
         });
         
-        if (response) {
+        if (response && response.user) {
           const { user, token, expiry } = response;
           
           const newAuthState = {
@@ -193,7 +194,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             localStorage.setItem('dms_auth', JSON.stringify(newAuthState));
           }
           
-          toast.success(`Welcome back, ${user.name}!`);
+          toast.success(`Welcome back, ${user.name || email}!`);
           
           if (user.role === 'admin') {
             navigate('/admin/dashboard');

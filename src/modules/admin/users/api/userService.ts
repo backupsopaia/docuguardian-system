@@ -31,14 +31,20 @@ export const getUsers = async (): Promise<User[]> => {
       }));
     }
     
+    // Ensure data is an array
+    if (!Array.isArray(data)) {
+      console.error('Expected array but got:', data);
+      return [];
+    }
+    
     // Map database format to frontend format if necessary
     return data.map(user => ({
       id: user.id,
-      name: user.name,
-      email: user.email,
+      name: user.name || '',
+      email: user.email || '',
       role: user.role as 'admin' | 'user',
       department: user.department || '',
-      isActive: user.is_active
+      isActive: user.is_active || false
     }));
   } catch (error) {
     console.error('Error fetching users:', error);

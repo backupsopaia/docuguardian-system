@@ -1,4 +1,3 @@
-
 import { Department } from '@/modules/admin/users/data/departments';
 import { apiFetch } from '@/lib/api';
 import { supabase, fromTable } from '@/integrations/supabase/client';
@@ -12,14 +11,24 @@ export const getDepartments = async (): Promise<Department[]> => {
       
     if (error) throw error;
     
-    // If we have data from Supabase, return it
-    if (data && data.length > 0) {
+    // If we have data from Supabase, ensure it's an array and return it
+    if (data && Array.isArray(data) && data.length > 0) {
       return data as Department[];
     }
     
     // Fallback to API
-    const response = await apiFetch<Department[]>('/departments');
-    return response;
+    try {
+      const response = await apiFetch<Department[]>('/departments');
+      if (Array.isArray(response)) {
+        return response;
+      } else {
+        console.error('Expected array but got:', response);
+        throw new Error('Invalid response format');
+      }
+    } catch (apiError) {
+      console.error('API fetch failed:', apiError);
+      throw apiError;
+    }
   } catch (error) {
     console.log('Failed to fetch departments, using simulated data:', error);
     
@@ -29,7 +38,7 @@ export const getDepartments = async (): Promise<Department[]> => {
     // In a real app, this would be an API call
     // For now, we import the mock data as fallback
     const { departments } = await import('@/modules/admin/users/data/departments');
-    return departments;
+    return Array.isArray(departments) ? departments : [];
   }
 };
 
