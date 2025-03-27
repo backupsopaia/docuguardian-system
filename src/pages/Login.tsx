@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -22,7 +21,11 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await login(email, password, rememberMe);
+    try {
+      await login(email, password, rememberMe);
+    } catch (err) {
+      console.error('Login error:', err);
+    }
   };
 
   return (

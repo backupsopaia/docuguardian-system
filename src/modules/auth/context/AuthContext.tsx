@@ -1,8 +1,8 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { mockUsers } from '../data/users';
+import { apiFetch } from '@/lib/api';
 
 interface User {
   id: string;
@@ -111,24 +111,54 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [authState.user, authState.tokenExpiry]);
 
-  const refreshToken = (user: User) => {
+  const refreshToken = async (user: User) => {
     console.log('Refreshing token for user:', user.email);
-    const { token, expiry } = createMockToken(user, 3600); // 1 hour expiry
     
-    setAuthState(prev => ({
-      ...prev,
-      token,
-      tokenExpiry: expiry
-    }));
-    
-    // Update localStorage if we're in a persistent session
-    const savedAuth = localStorage.getItem('dms_auth');
-    if (savedAuth) {
-      localStorage.setItem('dms_auth', JSON.stringify({
-        user,
+    try {
+      // In a real implementation, this would call the refresh token endpoint
+      // For now, we'll use our API utility with mock data
+      const response = await apiFetch<{ token: string, expiry: number }>('/auth/refresh', {
+        method: 'POST',
+        body: JSON.stringify({ userId: user.id }),
+      }, authState.token);
+      
+      const { token, expiry } = response || createMockToken(user, 3600);
+      
+      setAuthState(prev => ({
+        ...prev,
         token,
         tokenExpiry: expiry
       }));
+      
+      // Update localStorage if we're in a persistent session
+      const savedAuth = localStorage.getItem('dms_auth');
+      if (savedAuth) {
+        localStorage.setItem('dms_auth', JSON.stringify({
+          user,
+          token,
+          tokenExpiry: expiry
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to refresh token:', error);
+      // Fall back to mock token for demo
+      const { token, expiry } = createMockToken(user, 3600);
+      
+      setAuthState(prev => ({
+        ...prev,
+        token,
+        tokenExpiry: expiry
+      }));
+      
+      // Update localStorage
+      const savedAuth = localStorage.getItem('dms_auth');
+      if (savedAuth) {
+        localStorage.setItem('dms_auth', JSON.stringify({
+          user,
+          token,
+          tokenExpiry: expiry
+        }));
+      }
     }
   };
 
@@ -137,6 +167,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setError(null);
     
     try {
+      // Try to use the API first, fall back to mock data
+      try {
+        const response = await apiFetch<{
+          user: User,
+          token: string,
+          expiry: number
+        }>('/auth/login', {
+          method: 'POST',
+          body: JSON.stringify({ email, password })
+        });
+        
+        if (response) {
+          const { user, token, expiry } = response;
+          
+          const newAuthState = {
+            user,
+            token,
+            tokenExpiry: expiry
+          };
+          
+          setAuthState(newAuthState);
+          
+          if (rememberMe) {
+            localStorage.setItem('dms_auth', JSON.stringify(newAuthState));
+          }
+          
+          toast.success(`Welcome back, ${user.name}!`);
+          
+          if (user.role === 'admin') {
+            navigate('/admin/dashboard');
+          } else {
+            navigate('/dashboard');
+          }
+          return;
+        }
+      } catch (apiError) {
+        console.log('API authentication failed, falling back to mock data:', apiError);
+        // Continue to mock authentication if API fails
+      }
+      
+      // Fall back to mock authentication
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       const foundUser = mockUsers.find(
@@ -188,7 +259,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    // Try to call logout API if the user is authenticated
+    if (authState.token) {
+      try {
+        await apiFetch('/auth/logout', {
+          method: 'POST'
+        }, authState.token);
+      } catch (error) {
+        console.error('Failed to call logout API:', error);
+      }
+    }
+    
     // Log the logout activity (in a real app, this would be sent to the server)
     if (authState.user) {
       console.log('Logout activity:', {

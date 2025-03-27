@@ -1,7 +1,8 @@
 
 import { Document, DocumentStatus } from '@/components/admin/documents/DocumentsTable';
+import { apiFetch } from '@/lib/api';
 
-// Mock data - in a real application this would be replaced with actual API calls
+// Mock data - used as fallback when API is not available
 const MOCK_DOCUMENTS: Document[] = [
   {
     id: 'DOC-2023-001',
@@ -130,102 +131,142 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 // Get documents with optional filters
 export const getDocuments = async (filters?: { status?: DocumentStatus }) => {
-  // Simulate API delay
-  await delay(800);
-  
-  let filteredDocs = [...MOCK_DOCUMENTS];
-  
-  if (filters?.status) {
-    filteredDocs = filteredDocs.filter(doc => doc.status === filters.status);
+  try {
+    // Try to fetch from API first
+    const endpoint = filters?.status 
+      ? `/documents?status=${filters.status}` 
+      : '/documents';
+    
+    return await apiFetch<Document[]>(endpoint);
+  } catch (error) {
+    console.log('API fetch failed, using mock data:', error);
+    // Fall back to mock data
+    await delay(800);
+    
+    let filteredDocs = [...MOCK_DOCUMENTS];
+    
+    if (filters?.status) {
+      filteredDocs = filteredDocs.filter(doc => doc.status === filters.status);
+    }
+    
+    return filteredDocs;
   }
-  
-  return filteredDocs;
 };
 
 // Get a single document by ID
 export const getDocumentById = async (id: string) => {
-  await delay(500);
-  return MOCK_DOCUMENTS.find(doc => doc.id === id);
+  try {
+    return await apiFetch<Document>(`/documents/${id}`);
+  } catch (error) {
+    console.log('API fetch failed, using mock data:', error);
+    await delay(500);
+    return MOCK_DOCUMENTS.find(doc => doc.id === id);
+  }
 };
 
 // Approve a document
 export const approveDocument = async (id: string) => {
-  await delay(600);
-  const docIndex = MOCK_DOCUMENTS.findIndex(doc => doc.id === id);
-  
-  if (docIndex >= 0) {
-    MOCK_DOCUMENTS[docIndex] = {
-      ...MOCK_DOCUMENTS[docIndex],
-      status: 'approved',
-      updatedAt: new Date().toISOString()
-    };
-    return MOCK_DOCUMENTS[docIndex];
+  try {
+    return await apiFetch<Document>(`/documents/${id}/approve`, { method: 'POST' });
+  } catch (error) {
+    console.log('API approve failed, using mock data:', error);
+    await delay(600);
+    const docIndex = MOCK_DOCUMENTS.findIndex(doc => doc.id === id);
+    
+    if (docIndex >= 0) {
+      MOCK_DOCUMENTS[docIndex] = {
+        ...MOCK_DOCUMENTS[docIndex],
+        status: 'approved',
+        updatedAt: new Date().toISOString()
+      };
+      return MOCK_DOCUMENTS[docIndex];
+    }
+    
+    throw new Error('Document not found');
   }
-  
-  throw new Error('Document not found');
 };
 
 // Reject a document
 export const rejectDocument = async (id: string) => {
-  await delay(600);
-  const docIndex = MOCK_DOCUMENTS.findIndex(doc => doc.id === id);
-  
-  if (docIndex >= 0) {
-    MOCK_DOCUMENTS[docIndex] = {
-      ...MOCK_DOCUMENTS[docIndex],
-      status: 'rejected',
-      updatedAt: new Date().toISOString()
-    };
-    return MOCK_DOCUMENTS[docIndex];
+  try {
+    return await apiFetch<Document>(`/documents/${id}/reject`, { method: 'POST' });
+  } catch (error) {
+    console.log('API reject failed, using mock data:', error);
+    await delay(600);
+    const docIndex = MOCK_DOCUMENTS.findIndex(doc => doc.id === id);
+    
+    if (docIndex >= 0) {
+      MOCK_DOCUMENTS[docIndex] = {
+        ...MOCK_DOCUMENTS[docIndex],
+        status: 'rejected',
+        updatedAt: new Date().toISOString()
+      };
+      return MOCK_DOCUMENTS[docIndex];
+    }
+    
+    throw new Error('Document not found');
   }
-  
-  throw new Error('Document not found');
 };
 
 // Archive a document
 export const archiveDocument = async (id: string) => {
-  await delay(600);
-  const docIndex = MOCK_DOCUMENTS.findIndex(doc => doc.id === id);
-  
-  if (docIndex >= 0) {
-    MOCK_DOCUMENTS[docIndex] = {
-      ...MOCK_DOCUMENTS[docIndex],
-      status: 'archived',
-      updatedAt: new Date().toISOString()
-    };
-    return MOCK_DOCUMENTS[docIndex];
+  try {
+    return await apiFetch<Document>(`/documents/${id}/archive`, { method: 'POST' });
+  } catch (error) {
+    console.log('API archive failed, using mock data:', error);
+    await delay(600);
+    const docIndex = MOCK_DOCUMENTS.findIndex(doc => doc.id === id);
+    
+    if (docIndex >= 0) {
+      MOCK_DOCUMENTS[docIndex] = {
+        ...MOCK_DOCUMENTS[docIndex],
+        status: 'archived',
+        updatedAt: new Date().toISOString()
+      };
+      return MOCK_DOCUMENTS[docIndex];
+    }
+    
+    throw new Error('Document not found');
   }
-  
-  throw new Error('Document not found');
 };
 
 // Restore a document from archive
 export const restoreDocument = async (id: string) => {
-  await delay(600);
-  const docIndex = MOCK_DOCUMENTS.findIndex(doc => doc.id === id);
-  
-  if (docIndex >= 0) {
-    MOCK_DOCUMENTS[docIndex] = {
-      ...MOCK_DOCUMENTS[docIndex],
-      status: 'approved', // Restored documents go back to approved status
-      updatedAt: new Date().toISOString()
-    };
-    return MOCK_DOCUMENTS[docIndex];
+  try {
+    return await apiFetch<Document>(`/documents/${id}/restore`, { method: 'POST' });
+  } catch (error) {
+    console.log('API restore failed, using mock data:', error);
+    await delay(600);
+    const docIndex = MOCK_DOCUMENTS.findIndex(doc => doc.id === id);
+    
+    if (docIndex >= 0) {
+      MOCK_DOCUMENTS[docIndex] = {
+        ...MOCK_DOCUMENTS[docIndex],
+        status: 'approved', // Restored documents go back to approved status
+        updatedAt: new Date().toISOString()
+      };
+      return MOCK_DOCUMENTS[docIndex];
+    }
+    
+    throw new Error('Document not found');
   }
-  
-  throw new Error('Document not found');
 };
 
 // Delete a document permanently
 export const deleteDocument = async (id: string) => {
-  await delay(800);
-  const docIndex = MOCK_DOCUMENTS.findIndex(doc => doc.id === id);
-  
-  if (docIndex >= 0) {
-    const deletedDoc = MOCK_DOCUMENTS[docIndex];
-    MOCK_DOCUMENTS.splice(docIndex, 1);
-    return deletedDoc;
+  try {
+    return await apiFetch<Document>(`/documents/${id}`, { method: 'DELETE' });
+  } catch (error) {
+    console.log('API delete failed, using mock data:', error);
+    await delay(800);
+    const docIndex = MOCK_DOCUMENTS.findIndex(doc => doc.id === id);
+    
+    if (docIndex >= 0) {
+      const deletedDoc = MOCK_DOCUMENTS[docIndex];
+      MOCK_DOCUMENTS.splice(docIndex, 1);
+      return deletedDoc;
+    }
+    
+    throw new Error('Document not found');
   }
-  
-  throw new Error('Document not found');
 };
