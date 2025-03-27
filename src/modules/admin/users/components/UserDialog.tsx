@@ -76,7 +76,7 @@ export const UserDialog: React.FC<UserDialogProps> = ({
     defaultValues: {
       name: '',
       email: '',
-      role: 'user',
+      role: 'user' as const, // Explicitly type as const
       department: '',
       isActive: true,
       password: '',
@@ -92,7 +92,7 @@ export const UserDialog: React.FC<UserDialogProps> = ({
         ? {
             name: user?.name || '',
             email: user?.email || '',
-            role: (user?.role as 'admin' | 'user') || 'user',
+            role: (user?.role as 'admin' | 'user') || 'user' as const,
             department: user?.department || '',
             isActive: user?.isActive || true,
             password: undefined,
@@ -101,7 +101,7 @@ export const UserDialog: React.FC<UserDialogProps> = ({
             name: '',
             email: '',
             password: '',
-            role: 'user',
+            role: 'user' as const, // Use type assertion to ensure role is properly typed
             department: '',
             isActive: true,
           };
