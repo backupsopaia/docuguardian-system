@@ -90,6 +90,85 @@ export const trySupabaseFallback = async <T>(
               return;
             }
           }
+          
+          // Special handling for auth endpoints
+          if (collection === 'auth') {
+            const action = endpoint.split('/').filter(Boolean)[1];
+            
+            // Handle login action
+            if (action === 'login' && options.method === 'POST' && options.body) {
+              const { email, password } = JSON.parse(options.body.toString());
+              
+              const { data, error: signInError } = await supabase.auth.signInWithPassword({
+                email,
+                password
+              });
+              
+              if (signInError) {
+                reject(new ApiError(signInError.message, 401, signInError));
+                return;
+              }
+              
+              // Get user details from the users table
+              const { data: userData, error: userError } = await fromTable('users')
+                .select('*')
+                .eq('email', email)
+                .single();
+                
+              if (userError && userError.code !== 'PGRST116') { // Ignore "no rows returned" error
+                console.warn('Could not fetch user details:', userError);
+              }
+              
+              // Format the response to match what the app expects
+              const response = {
+                user: userData || {
+                  id: data.user?.id,
+                  email: data.user?.email,
+                  name: data.user?.user_metadata?.name || email.split('@')[0],
+                  role: data.user?.user_metadata?.role || 'user',
+                  department: data.user?.user_metadata?.department || '',
+                  isActive: true,
+                  lastLogin: new Date()
+                },
+                token: data.session?.access_token,
+                expiry: data.session?.expires_at ? new Date(data.session.expires_at).getTime() : null
+              };
+              
+              resolve(response as T);
+              return;
+            }
+            
+            // Handle logout action
+            if (action === 'logout' && options.method === 'POST') {
+              const { error: signOutError } = await supabase.auth.signOut();
+              
+              if (signOutError) {
+                reject(new ApiError(signOutError.message, 500, signOutError));
+                return;
+              }
+              
+              resolve({} as T);
+              return;
+            }
+            
+            // Handle refresh token action
+            if (action === 'refresh' && options.method === 'POST') {
+              const { data, error: refreshError } = await supabase.auth.refreshSession();
+              
+              if (refreshError) {
+                reject(new ApiError(refreshError.message, 500, refreshError));
+                return;
+              }
+              
+              const response = {
+                token: data.session?.access_token,
+                expiry: data.session?.expires_at ? new Date(data.session.expires_at).getTime() : null
+              };
+              
+              resolve(response as T);
+              return;
+            }
+          }
         }
         
         // If we get here, we couldn't handle the request with Supabase

@@ -1,62 +1,52 @@
 
-import { User, UserResponse } from './types';
+import { User } from './types';
 
 /**
- * Maps a user from the database format to the frontend format
+ * Utility functions for user service
  */
-export const mapDbUserToFrontend = (dbUser: any): User => {
-  console.log('Mapping DB user to frontend format:', dbUser);
+
+/**
+ * Map user data from API response to User type
+ */
+export const mapUserData = (userData: any): User => {
   return {
-    id: dbUser.id,
-    name: dbUser.name,
-    email: dbUser.email,
-    role: dbUser.role,
-    department: dbUser.department,
-    isActive: dbUser.is_active,
-    created_at: dbUser.created_at,
-    updated_at: dbUser.updated_at,
+    id: userData.id,
+    name: userData.name,
+    email: userData.email,
+    role: userData.role || 'user',
+    department: userData.department || '',
+    isActive: userData.is_active !== undefined ? userData.is_active : true,
+    created_at: userData.created_at || new Date().toISOString(),
+    updated_at: userData.updated_at || new Date().toISOString()
   };
 };
 
 /**
- * Maps a user from the frontend format to the database format
+ * Create mock user data for testing
  */
-export const mapFrontendUserToDb = (user: Omit<User, 'id'>): any => {
-  console.log('Mapping frontend user to DB format:', user);
-  return {
-    name: user.name,
-    email: user.email,
-    role: user.role, 
-    department: user.department,
-    is_active: user.isActive,
-  };
-};
+export const createMockUserData = (count: number = 10): User[] => {
+  const roles = ['admin', 'user'];
+  const departments = ['Marketing', 'IT', 'Finance', 'HR', 'Operations', 'Sales'];
+  const users: User[] = [];
 
-/**
- * Creates mock user data for fallback when the database is not available
- */
-export const createMockUserData = (): User[] => {
-  console.log('Creating mock user data as fallback');
-  return [
-    {
-      id: '1',
-      name: 'Admin User',
-      email: 'admin@example.com',
-      role: 'admin',
-      department: 'Management',
-      isActive: true,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-    {
-      id: '2',
-      name: 'Test User',
-      email: 'user@example.com',
-      role: 'user',
-      department: 'General',
-      isActive: true,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    }
-  ];
+  for (let i = 0; i < count; i++) {
+    const id = crypto.randomUUID();
+    const role = roles[Math.floor(Math.random() * roles.length)] as 'admin' | 'user';
+    const department = departments[Math.floor(Math.random() * departments.length)];
+    const isActive = Math.random() > 0.2; // 80% chance of being active
+    const createdDate = new Date(Date.now() - Math.floor(Math.random() * 10000000000));
+    
+    users.push({
+      id,
+      name: `User ${i + 1}`,
+      email: `user${i + 1}@example.com`,
+      role,
+      department,
+      isActive,
+      created_at: createdDate.toISOString(),
+      updated_at: new Date().toISOString()
+    });
+  }
+
+  return users;
 };
