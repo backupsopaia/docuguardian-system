@@ -225,12 +225,12 @@ export const updateDepartment = async (id: string, departmentData: Partial<{
     // In a real app, this would update the backend
     console.log('Updating simulated department:', id, departmentData);
     
-    // Return a simulated updated department
+    // Return a simulated updated department - removing the userCount reference that was causing the error
     return {
       id,
       name: departmentData.name || 'Updated Department',
       description: departmentData.description || 'Updated Description',
-      userCount: departmentData.userCount || 0,
+      userCount: 0, // Fixed value instead of using departmentData.userCount
       isActive: departmentData.isActive !== undefined ? departmentData.isActive : true
     };
   }

@@ -106,7 +106,11 @@ export const DepartmentDialog: React.FC<DepartmentDialogProps> = ({
         if (error) {
           console.error('Supabase update error:', error);
           // Fall back to service function
-          await updateDepartment(department.id, values);
+          await updateDepartment(department.id, {
+            name: values.name,
+            description: values.description,
+            isActive: values.isActive
+          });
         } else {
           console.log('Department updated successfully via Supabase:', data);
         }
@@ -128,8 +132,12 @@ export const DepartmentDialog: React.FC<DepartmentDialogProps> = ({
           
         if (error) {
           console.error('Supabase insert error:', error);
-          // Fall back to service function
-          await createDepartment(values);
+          // Fall back to service function with required properties
+          await createDepartment({
+            name: values.name,
+            description: values.description,
+            isActive: values.isActive
+          });
         } else {
           console.log('Department created successfully via Supabase:', data);
         }
