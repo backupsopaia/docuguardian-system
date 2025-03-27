@@ -4,11 +4,7 @@ import { useForm } from 'react-hook-form';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { Department } from '@/modules/admin/users/data/departments';
 import { createDepartment, updateDepartment } from '@/modules/admin/departments/api/departmentsService';
 import { toast } from 'sonner';
@@ -39,7 +35,7 @@ export const DepartmentDialog: React.FC<DepartmentDialogProps> = ({
     defaultValues: {
       name: department?.name || '',
       description: department?.description || '',
-      isActive: department?.is_active ?? true,
+      isActive: department?.isActive ?? true,
     },
   });
   
@@ -54,7 +50,7 @@ export const DepartmentDialog: React.FC<DepartmentDialogProps> = ({
         await updateDepartment(department.id, {
           name: values.name,
           description: values.description,
-          is_active: values.isActive,
+          isActive: values.isActive,
         });
         toast.success(`Departamento ${values.name} atualizado com sucesso`);
       } else {
@@ -62,7 +58,7 @@ export const DepartmentDialog: React.FC<DepartmentDialogProps> = ({
         await createDepartment({
           name: values.name,
           description: values.description,
-          is_active: values.isActive,
+          isActive: values.isActive,
         });
         toast.success(`Departamento ${values.name} criado com sucesso`);
       }
@@ -86,7 +82,7 @@ export const DepartmentDialog: React.FC<DepartmentDialogProps> = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
-        <DepartmentDialogHeader isEditing={isEditing} />
+        <DepartmentDialogHeader department={department} />
         
         <DepartmentForm 
           form={form} 
