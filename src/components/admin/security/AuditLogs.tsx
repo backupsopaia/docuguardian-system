@@ -6,7 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Search, Download, Calendar, Filter } from 'lucide-react';
+import { Search, Download, Calendar, Filter, FileDown } from 'lucide-react';
+import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import { useToast } from '@/hooks/use-toast';
 
 // Mock data for audit logs
 const AUDIT_LOGS = [
@@ -168,6 +170,10 @@ const AuditLogs = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [actionFilter, setActionFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const { toast } = useToast();
+  
+  const ITEMS_PER_PAGE = 8;
   
   const filteredLogs = AUDIT_LOGS.filter(log => {
     const matchesSearch = 
@@ -181,6 +187,137 @@ const AuditLogs = () => {
     
     return matchesSearch && matchesAction && matchesStatus;
   });
+  
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredLogs.length / ITEMS_PER_PAGE);
+  const indexOfLastItem = currentPage * ITEMS_PER_PAGE;
+  const indexOfFirstItem = indexOfLastItem - ITEMS_PER_PAGE;
+  const currentItems = filteredLogs.slice(indexOfFirstItem, indexOfLastItem);
+  
+  // Handle page changes
+  const handlePageChange = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
+  };
+  
+  // Export logs to CSV
+  const exportToCSV = () => {
+    // In a real application, this would call an API endpoint
+    // For now, we'll create a CSV from the filtered logs
+    
+    const csvHeader = ['ID', 'Timestamp', 'Usuário', 'Ação', 'Recurso', 'Detalhes', 'Endereço IP', 'Status'];
+    const csvRows = filteredLogs.map(log => [
+      log.id,
+      log.timestamp,
+      log.user,
+      getActionLabel(log.action),
+      log.resource,
+      log.details,
+      log.ipAddress,
+      log.status
+    ]);
+    
+    const csvContent = [
+      csvHeader.join(','),
+      ...csvRows.map(row => row.join(','))
+    ].join('\n');
+    
+    // Create a blob and download link
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `audit-logs-${new Date().toISOString().slice(0, 10)}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast({
+      title: "Exportação concluída",
+      description: "Os logs de auditoria foram exportados com sucesso para CSV.",
+    });
+  };
+  
+  // Generate pagination items
+  const renderPaginationItems = () => {
+    const items = [];
+    
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) {
+        items.push(
+          <PaginationItem key={i}>
+            <PaginationLink 
+              isActive={i === currentPage}
+              onClick={() => handlePageChange(i)}
+            >
+              {i}
+            </PaginationLink>
+          </PaginationItem>
+        );
+      }
+    } else {
+      // Show first page
+      items.push(
+        <PaginationItem key={1}>
+          <PaginationLink 
+            isActive={1 === currentPage}
+            onClick={() => handlePageChange(1)}
+          >
+            1
+          </PaginationLink>
+        </PaginationItem>
+      );
+      
+      // Show ellipsis if needed
+      if (currentPage > 3) {
+        items.push(
+          <PaginationItem key="ellipsis1">
+            <PaginationEllipsis />
+          </PaginationItem>
+        );
+      }
+      
+      // Show pages around current page
+      const startPage = Math.max(2, currentPage - 1);
+      const endPage = Math.min(totalPages - 1, currentPage + 1);
+      
+      for (let i = startPage; i <= endPage; i++) {
+        items.push(
+          <PaginationItem key={i}>
+            <PaginationLink 
+              isActive={i === currentPage}
+              onClick={() => handlePageChange(i)}
+            >
+              {i}
+            </PaginationLink>
+          </PaginationItem>
+        );
+      }
+      
+      // Show ellipsis if needed
+      if (currentPage < totalPages - 2) {
+        items.push(
+          <PaginationItem key="ellipsis2">
+            <PaginationEllipsis />
+          </PaginationItem>
+        );
+      }
+      
+      // Show last page
+      items.push(
+        <PaginationItem key={totalPages}>
+          <PaginationLink 
+            isActive={totalPages === currentPage}
+            onClick={() => handlePageChange(totalPages)}
+          >
+            {totalPages}
+          </PaginationLink>
+        </PaginationItem>
+      );
+    }
+    
+    return items;
+  };
   
   return (
     <Card>
@@ -235,9 +372,9 @@ const AuditLogs = () => {
               Período
             </Button>
             
-            <Button>
-              <Download className="h-4 w-4 mr-2" />
-              Exportar
+            <Button onClick={exportToCSV}>
+              <FileDown className="h-4 w-4 mr-2" />
+              Exportar CSV
             </Button>
           </div>
         </div>
@@ -257,20 +394,56 @@ const AuditLogs = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredLogs.map((log) => (
-                <TableRow key={log.id}>
-                  <TableCell className="font-mono text-xs">{formatDate(log.timestamp)}</TableCell>
-                  <TableCell>{log.user}</TableCell>
-                  <TableCell>{getActionLabel(log.action)}</TableCell>
-                  <TableCell>{log.resource}</TableCell>
-                  <TableCell className="max-w-md truncate">{log.details}</TableCell>
-                  <TableCell className="font-mono text-xs">{log.ipAddress}</TableCell>
-                  <TableCell>{getStatusBadge(log.status)}</TableCell>
+              {currentItems.length > 0 ? (
+                currentItems.map((log) => (
+                  <TableRow key={log.id}>
+                    <TableCell className="font-mono text-xs">{formatDate(log.timestamp)}</TableCell>
+                    <TableCell>{log.user}</TableCell>
+                    <TableCell>{getActionLabel(log.action)}</TableCell>
+                    <TableCell>{log.resource}</TableCell>
+                    <TableCell className="max-w-md truncate">{log.details}</TableCell>
+                    <TableCell className="font-mono text-xs">{log.ipAddress}</TableCell>
+                    <TableCell>{getStatusBadge(log.status)}</TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-6">
+                    Nenhum log encontrado com os filtros aplicados
+                  </TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
         </div>
+        
+        {filteredLogs.length > 0 && (
+          <div className="mt-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">
+                Exibindo {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredLogs.length)} de {filteredLogs.length} logs
+              </p>
+              
+              <Pagination>
+                <PaginationContent>
+                  {currentPage > 1 && (
+                    <PaginationItem>
+                      <PaginationPrevious onClick={() => handlePageChange(currentPage - 1)} />
+                    </PaginationItem>
+                  )}
+                  
+                  {renderPaginationItems()}
+                  
+                  {currentPage < totalPages && (
+                    <PaginationItem>
+                      <PaginationNext onClick={() => handlePageChange(currentPage + 1)} />
+                    </PaginationItem>
+                  )}
+                </PaginationContent>
+              </Pagination>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

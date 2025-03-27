@@ -20,8 +20,8 @@ const Security = () => {
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList>
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+          <TabsTrigger value="logs">Logs de Auditoria</TabsTrigger>
           <TabsTrigger value="settings">Configurações</TabsTrigger>
-          <TabsTrigger value="logs">Logs</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -31,12 +31,12 @@ const Security = () => {
           </div>
         </TabsContent>
 
-        <TabsContent value="settings">
-          <SecuritySettings />
-        </TabsContent>
-
         <TabsContent value="logs">
           <AuditLogs />
+        </TabsContent>
+
+        <TabsContent value="settings">
+          <SecuritySettings />
         </TabsContent>
       </Tabs>
     </div>
