@@ -1,25 +1,43 @@
 import { Department } from '@/modules/admin/users/data/departments';
 import { apiFetch } from '@/lib/api';
-import { supabase, fromTable } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 
 // Get all departments
 export const getDepartments = async (): Promise<Department[]> => {
   try {
+    console.log('Fetching departments from Supabase...');
     // Try to fetch departments from Supabase directly
-    const { data, error } = await fromTable<Department>('departments')
-      .select('*');
+    const { data, error } = await supabase
+      .from('departments')
+      .select('*')
+      .order('name');
       
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase error fetching departments:', error);
+      throw error;
+    }
     
     // If we have data from Supabase, ensure it's an array and return it
-    if (data && Array.isArray(data) && data.length > 0) {
-      return data as Department[];
+    if (data && Array.isArray(data)) {
+      console.log(`Successfully fetched ${data.length} departments from Supabase`);
+      // Map database column names to frontend property names
+      return data.map(dept => ({
+        id: dept.id,
+        name: dept.name,
+        description: dept.description,
+        isActive: dept.is_active,
+        userCount: dept.user_count,
+        createdAt: dept.created_at,
+        updatedAt: dept.updated_at
+      }));
     }
     
     // Fallback to API
     try {
+      console.log('Falling back to API for departments...');
       const response = await apiFetch<Department[]>('/departments');
       if (Array.isArray(response)) {
+        console.log(`Successfully fetched ${response.length} departments from API`);
         return response;
       } else {
         console.error('Expected array but got:', response);
@@ -30,7 +48,7 @@ export const getDepartments = async (): Promise<Department[]> => {
       throw apiError;
     }
   } catch (error) {
-    console.log('Failed to fetch departments, using simulated data:', error);
+    console.error('Failed to fetch departments, using simulated data:', error);
     
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 800));
@@ -38,6 +56,7 @@ export const getDepartments = async (): Promise<Department[]> => {
     // In a real app, this would be an API call
     // For now, we import the mock data as fallback
     const { departments } = await import('@/modules/admin/users/data/departments');
+    console.log(`Returned ${departments.length} simulated departments`);
     return Array.isArray(departments) ? departments : [];
   }
 };
@@ -46,16 +65,25 @@ export const getDepartments = async (): Promise<Department[]> => {
 export const getDepartmentById = async (id: string): Promise<Department | undefined> => {
   try {
     // Try to fetch the department from Supabase directly
-    const { data, error } = await fromTable<Department>('departments')
+    const { data, error } = await supabase
+      .from('departments')
       .select('*')
       .eq('id', id)
       .single();
       
     if (error) throw error;
     
-    // If we have data from Supabase, return it
+    // If we have data from Supabase, return it mapped to frontend format
     if (data) {
-      return data as Department;
+      return {
+        id: data.id,
+        name: data.name,
+        description: data.description,
+        isActive: data.is_active,
+        userCount: data.user_count,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at
+      };
     }
     
     // Fallback to API
@@ -76,30 +104,47 @@ export const getDepartmentById = async (id: string): Promise<Department | undefi
 // Create new department
 export const createDepartment = async (departmentData: Omit<Department, 'id' | 'userCount'>): Promise<Department> => {
   try {
+    console.log('Creating department in Supabase:', departmentData);
     // Try to create a department in Supabase directly
-    const { data, error } = await fromTable<Department>('departments')
+    const { data, error } = await supabase
+      .from('departments')
       .insert({ 
-        ...departmentData,
+        name: departmentData.name,
+        description: departmentData.description,
+        is_active: departmentData.isActive,
         user_count: 0
       })
       .select()
       .single();
       
-    if (error) throw error;
+    if (error) {
+      console.error('Error creating department in Supabase:', error);
+      throw error;
+    }
     
-    // If we have data from Supabase, return it
+    // If we have data from Supabase, return it mapped to frontend format
     if (data) {
-      return data as Department;
+      console.log('Department created successfully in Supabase:', data);
+      return {
+        id: data.id,
+        name: data.name,
+        description: data.description,
+        isActive: data.is_active,
+        userCount: data.user_count,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at
+      };
     }
     
     // Fallback to API
+    console.log('Falling back to API for department creation');
     const response = await apiFetch<Department>('/departments', {
       method: 'POST',
       body: JSON.stringify(departmentData)
     });
     return response;
   } catch (error) {
-    console.log('Failed to create department, using simulated data:', error);
+    console.error('Failed to create department, using simulated data:', error);
     
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 1000));
@@ -112,7 +157,7 @@ export const createDepartment = async (departmentData: Omit<Department, 'id' | '
     };
     
     // In a real app, this would save to the backend
-    console.log('Creating department:', newDepartment);
+    console.log('Creating simulated department:', newDepartment);
     
     return newDepartment;
   }
@@ -121,34 +166,53 @@ export const createDepartment = async (departmentData: Omit<Department, 'id' | '
 // Update existing department
 export const updateDepartment = async (id: string, departmentData: Partial<Department>): Promise<Department> => {
   try {
+    console.log(`Updating department ${id} in Supabase:`, departmentData);
     // Try to update the department in Supabase directly
-    const { data, error } = await fromTable<Department>('departments')
-      .update(departmentData)
+    const { data, error } = await supabase
+      .from('departments')
+      .update({
+        name: departmentData.name,
+        description: departmentData.description,
+        is_active: departmentData.isActive
+      })
       .eq('id', id)
       .select()
       .single();
       
-    if (error) throw error;
+    if (error) {
+      console.error('Error updating department in Supabase:', error);
+      throw error;
+    }
     
-    // If we have data from Supabase, return it
+    // If we have data from Supabase, return it mapped to frontend format
     if (data) {
-      return data as Department;
+      console.log('Department updated successfully in Supabase:', data);
+      return {
+        id: data.id,
+        name: data.name,
+        description: data.description,
+        isActive: data.is_active,
+        userCount: data.user_count,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at
+      };
     }
     
     // Fallback to API
+    console.log('Falling back to API for department update');
     const response = await apiFetch<Department>(`/departments/${id}`, {
       method: 'PUT',
       body: JSON.stringify(departmentData)
     });
     return response;
   } catch (error) {
-    console.log('Failed to update department, using simulated data:', error);
+    console.error('Failed to update department, using simulated data:', error);
     
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 1000));
     
     // In a real app, this would update the backend
-    console.log('Updating department:', id, departmentData);
+    console.log('Updating simulated department:', id, departmentData);
     
     // Return a simulated updated department
     return {
@@ -165,7 +229,8 @@ export const updateDepartment = async (id: string, departmentData: Partial<Depar
 export const deleteDepartment = async (id: string): Promise<boolean> => {
   try {
     // Try to delete the department from Supabase directly
-    const { error } = await fromTable('departments')
+    const { error } = await supabase
+      .from('departments')
       .delete()
       .eq('id', id);
       
@@ -195,7 +260,8 @@ export const deleteDepartment = async (id: string): Promise<boolean> => {
 export const assignDocumentToDepartment = async (documentId: string, departmentId: string): Promise<boolean> => {
   try {
     // Try to update the document in Supabase directly
-    const { error } = await fromTable('documents')
+    const { error } = await supabase
+      .from('documents')
       .update({ department_id: departmentId })
       .eq('id', documentId);
       
@@ -225,7 +291,8 @@ export const assignDocumentToDepartment = async (documentId: string, departmentI
 export const getDocumentsByDepartment = async (departmentId: string): Promise<any[]> => {
   try {
     // Try to fetch documents from Supabase directly
-    const { data, error } = await fromTable('documents')
+    const { data, error } = await supabase
+      .from('documents')
       .select('*')
       .eq('department_id', departmentId);
       

@@ -1,55 +1,45 @@
 
-import React, { useState } from 'react';
-import { FileEdit, Trash2, Users, FolderOpen, ClipboardList, ShieldAlert, FileText } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import React, { useEffect, useState } from 'react';
 import { 
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { toast } from "sonner";
+  FileEdit, 
+  Users, 
+  Building2, 
+  FolderOpenIcon, 
+  FileIcon, 
+  ClipboardListIcon, 
+  ShieldAlertIcon,
+  Loader2
+} from 'lucide-react';
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Department } from '../data/departments';
-import { deleteDepartment } from '@/modules/admin/departments/api/departmentsService';
-import { Skeleton } from "@/components/ui/skeleton";
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface DepartmentListProps {
   departments: Department[];
-  isLoading?: boolean;
+  isLoading: boolean;
   onEdit: (department: Department) => void;
   onManageUsers?: (department: Department) => void;
   onManageFolders?: (department: Department) => void;
   onManageTasks?: (department: Department) => void;
   onManageRestrictions?: (department: Department) => void;
   onManageDocuments?: (department: Department) => void;
-  onDepartmentUpdated?: () => void;
+  onDepartmentUpdated: () => void;
 }
 
-export const DepartmentList: React.FC<DepartmentListProps> = ({ 
+export const DepartmentList: React.FC<DepartmentListProps> = ({
   departments,
-  isLoading = false,
-  onEdit, 
+  isLoading,
+  onEdit,
   onManageUsers,
   onManageFolders,
   onManageTasks,
@@ -57,151 +47,188 @@ export const DepartmentList: React.FC<DepartmentListProps> = ({
   onManageDocuments,
   onDepartmentUpdated
 }) => {
-  const [deptToDelete, setDeptToDelete] = useState<Department | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [localDepartments, setLocalDepartments] = useState<Department[]>(departments);
+  const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
   
-  const handleDelete = async () => {
-    if (!deptToDelete) return;
-    
+  // Update local departments when props change
+  useEffect(() => {
+    setLocalDepartments(departments);
+  }, [departments]);
+  
+  // Subscribe to Supabase realtime updates for departments
+  useEffect(() => {
+    const channel = supabase
+      .channel('departments-changes')
+      .on(
+        'postgres_changes',
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'departments' 
+        },
+        (payload) => {
+          console.log('Departments change received:', payload);
+          onDepartmentUpdated(); // Trigger parent refresh
+        }
+      )
+      .subscribe();
+      
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [onDepartmentUpdated]);
+
+  // Manually refresh departments from Supabase
+  const refreshDepartments = async () => {
     try {
-      setIsDeleting(true);
-      await deleteDepartment(deptToDelete.id);
-      toast.success(`Departamento ${deptToDelete.name} removido com sucesso`);
-      if (onDepartmentUpdated) onDepartmentUpdated();
+      const { data, error } = await supabase
+        .from('departments')
+        .select('*')
+        .order('name');
+        
+      if (error) {
+        console.error('Error fetching departments:', error);
+        return;
+      }
+      
+      if (data) {
+        setLocalDepartments(data as Department[]);
+      }
     } catch (error) {
-      toast.error('Erro ao remover departamento');
-    } finally {
-      setIsDeleting(false);
-      setDeptToDelete(null);
+      console.error('Unexpected error fetching departments:', error);
     }
   };
-  
+
   if (isLoading) {
     return (
-      <div className="space-y-3">
-        {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="flex items-center space-x-4">
-            <Skeleton className="h-12 w-full" />
-          </div>
-        ))}
+      <div className="flex justify-center items-center py-8">
+        <Loader2 className="w-6 h-6 text-primary animate-spin" />
+        <span className="ml-2">Carregando departamentos...</span>
       </div>
     );
   }
   
-  if (departments.length === 0) {
+  if (localDepartments.length === 0) {
     return (
-      <div className="text-center py-8 border rounded-md">
-        <p className="text-muted-foreground">Nenhum departamento encontrado</p>
+      <div className="text-center py-8">
+        <Building2 className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+        <h3 className="text-lg font-medium">Nenhum departamento encontrado</h3>
+        <p className="text-muted-foreground mb-4">
+          Comece adicionando o primeiro departamento da sua organização
+        </p>
+        <Button 
+          onClick={() => refreshDepartments()}
+          variant="outline" 
+          size="sm"
+        >
+          Atualizar lista
+        </Button>
       </div>
     );
   }
   
   return (
-    <>
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nome</TableHead>
-              <TableHead>Descrição</TableHead>
-              <TableHead>Usuários</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="w-[100px]">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {departments.map(dept => (
-              <TableRow key={dept.id}>
-                <TableCell className="font-medium">{dept.name}</TableCell>
-                <TableCell>{dept.description}</TableCell>
-                <TableCell>{dept.userCount}</TableCell>
-                <TableCell>
-                  <Badge variant="default" className={dept.isActive ? "bg-green-600 hover:bg-green-700" : ""}>
-                    {dept.isActive ? 'Ativo' : 'Inativo'}
+    <div>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Nome</TableHead>
+            <TableHead>Descrição</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Usuários</TableHead>
+            <TableHead className="text-right">Ações</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {localDepartments.map((department) => (
+            <TableRow key={department.id}>
+              <TableCell className="font-medium">{department.name}</TableCell>
+              <TableCell className="max-w-xs truncate">
+                {department.description || 'Sem descrição'}
+              </TableCell>
+              <TableCell>
+                {department.isActive ? (
+                  <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                    Ativo
                   </Badge>
-                </TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">Menu</span>
-                        <FileEdit className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => onEdit(dept)}>
-                        <FileEdit className="mr-2 h-4 w-4" />
-                        Editar
-                      </DropdownMenuItem>
-                      {onManageUsers && (
-                        <DropdownMenuItem onClick={() => onManageUsers(dept)}>
-                          <Users className="mr-2 h-4 w-4" />
-                          Gerenciar Usuários
-                        </DropdownMenuItem>
-                      )}
-                      {onManageDocuments && (
-                        <DropdownMenuItem onClick={() => onManageDocuments(dept)}>
-                          <FileText className="mr-2 h-4 w-4" />
-                          Gerenciar Documentos
-                        </DropdownMenuItem>
-                      )}
-                      {onManageFolders && (
-                        <DropdownMenuItem onClick={() => onManageFolders(dept)}>
-                          <FolderOpen className="mr-2 h-4 w-4" />
-                          Pastas e Permissões
-                        </DropdownMenuItem>
-                      )}
-                      {onManageTasks && (
-                        <DropdownMenuItem onClick={() => onManageTasks(dept)}>
-                          <ClipboardList className="mr-2 h-4 w-4" />
-                          Tarefas
-                        </DropdownMenuItem>
-                      )}
-                      {onManageRestrictions && (
-                        <DropdownMenuItem onClick={() => onManageRestrictions(dept)}>
-                          <ShieldAlert className="mr-2 h-4 w-4" />
-                          Restrições
-                        </DropdownMenuItem>
-                      )}
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem 
-                        onClick={() => setDeptToDelete(dept)}
-                        className="text-destructive focus:text-destructive"
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Remover
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-      
-      <AlertDialog open={!!deptToDelete} onOpenChange={(open) => !open && setDeptToDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Remover departamento</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta ação não pode ser desfeita. Tem certeza que deseja remover o departamento <strong>{deptToDelete?.name}</strong>?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleDelete} 
-              className="bg-destructive text-destructive-foreground"
-              disabled={isDeleting}
-            >
-              {isDeleting ? 'Removendo...' : 'Remover'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+                ) : (
+                  <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">
+                    Inativo
+                  </Badge>
+                )}
+              </TableCell>
+              <TableCell>{department.userCount || 0} usuários</TableCell>
+              <TableCell className="text-right">
+                <div className="flex justify-end items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onEdit(department)}
+                    title="Editar departamento"
+                  >
+                    <FileEdit className="h-4 w-4" />
+                  </Button>
+                  
+                  {onManageUsers && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onManageUsers(department)}
+                      title="Gerenciar usuários"
+                    >
+                      <Users className="h-4 w-4" />
+                    </Button>
+                  )}
+                  
+                  {onManageFolders && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onManageFolders(department)}
+                      title="Gerenciar pastas"
+                    >
+                      <FolderOpenIcon className="h-4 w-4" />
+                    </Button>
+                  )}
+                  
+                  {onManageTasks && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onManageTasks(department)}
+                      title="Gerenciar tarefas"
+                    >
+                      <ClipboardListIcon className="h-4 w-4" />
+                    </Button>
+                  )}
+                  
+                  {onManageDocuments && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onManageDocuments(department)}
+                      title="Gerenciar documentos"
+                    >
+                      <FileIcon className="h-4 w-4" />
+                    </Button>
+                  )}
+                  
+                  {onManageRestrictions && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onManageRestrictions(department)}
+                      title="Gerenciar restrições"
+                    >
+                      <ShieldAlertIcon className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   );
 };
