@@ -74,6 +74,27 @@ export const UserDialog: React.FC<UserDialogProps> = ({ open, onOpenChange, user
         },
   });
   
+  // Reset form when dialog opens/closes or user changes
+  React.useEffect(() => {
+    if (open) {
+      form.reset(isEditing 
+        ? {
+            name: user?.name || '',
+            email: user?.email || '',
+            role: user?.role || 'user',
+            department: user?.department || '',
+            isActive: user?.isActive || true,
+          }
+        : {
+            name: '',
+            email: '',
+            role: 'user',
+            department: '',
+            isActive: true,
+          });
+    }
+  }, [open, user, isEditing, form]);
+  
   const handleSubmit = async (values: FormValues) => {
     try {
       if (isEditing && user) {
@@ -87,18 +108,26 @@ export const UserDialog: React.FC<UserDialogProps> = ({ open, onOpenChange, user
           email: values.email,
           role: values.role,
           department: values.department,
-          isActive: values.isActive
+          isActive: values.isActive,
+          // Add password only if it's provided (for new users)
+          ...(values.password ? { password: values.password } : {})
         };
+        
         await createUser(newUser);
         toast.success(`Usuário ${values.name} criado com sucesso`);
       }
       
+      // Explicitly reset form
       form.reset();
+      
+      // Close dialog
       onOpenChange(false);
       
-      // Refresh the user list
+      // Refresh the user list with a small delay to ensure DB operation completes
       if (onUserUpdated) {
-        onUserUpdated();
+        setTimeout(() => {
+          onUserUpdated();
+        }, 100);
       }
     } catch (error) {
       console.error('Error saving user:', error);
@@ -107,7 +136,13 @@ export const UserDialog: React.FC<UserDialogProps> = ({ open, onOpenChange, user
   };
   
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(newOpen) => {
+      // If closing, ensure we clear the form
+      if (!newOpen) {
+        form.reset();
+      }
+      onOpenChange(newOpen);
+    }}>
       <DialogContent className="sm:max-w-[525px]">
         <DialogHeader>
           <DialogTitle>{isEditing ? 'Editar Usuário' : 'Adicionar Usuário'}</DialogTitle>
@@ -174,6 +209,7 @@ export const UserDialog: React.FC<UserDialogProps> = ({ open, onOpenChange, user
                     <Select 
                       onValueChange={field.onChange} 
                       defaultValue={field.value}
+                      value={field.value}
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -199,6 +235,7 @@ export const UserDialog: React.FC<UserDialogProps> = ({ open, onOpenChange, user
                     <Select 
                       onValueChange={field.onChange} 
                       defaultValue={field.value}
+                      value={field.value}
                     >
                       <FormControl>
                         <SelectTrigger>

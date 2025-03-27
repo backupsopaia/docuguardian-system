@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { FileEdit, Trash2, ShieldCheck, UserCog } from 'lucide-react';
 import {
   DropdownMenu,
@@ -41,35 +41,40 @@ export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions }) =
   const [users, setUsers] = useState<User[]>([]);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
   
-  useEffect(() => {
-    loadUsers();
-  }, []);
-  
-  const loadUsers = async () => {
+  const loadUsers = useCallback(async () => {
     setIsLoading(true);
     try {
       const fetchedUsers = await getUsers();
       setUsers(fetchedUsers);
     } catch (error) {
       console.error('Failed to load users:', error);
-      toast.error('Failed to load users');
+      toast.error('Falha ao carregar usuários');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+  
+  useEffect(() => {
+    loadUsers();
+  }, [loadUsers]);
   
   const handleDelete = async () => {
     if (!userToDelete) return;
     
+    setIsDeleting(true);
     try {
       await deleteUser(userToDelete.id);
+      // Update the local state after successful deletion
       setUsers(users.filter(user => user.id !== userToDelete.id));
       toast.success(`Usuário ${userToDelete.name} removido com sucesso`);
       setUserToDelete(null);
     } catch (error) {
       console.error('Failed to delete user:', error);
       toast.error('Falha ao remover usuário');
+    } finally {
+      setIsDeleting(false);
     }
   };
   
@@ -155,7 +160,10 @@ export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions }) =
         </Table>
       </div>
       
-      <AlertDialog open={!!userToDelete} onOpenChange={(open) => !open && setUserToDelete(null)}>
+      <AlertDialog 
+        open={!!userToDelete} 
+        onOpenChange={(open) => !open && setUserToDelete(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Remover usuário</AlertDialogTitle>
@@ -164,9 +172,16 @@ export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions }) =
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
-              Remover
+            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={e => {
+                e.preventDefault(); // Prevent dialog from closing automatically
+                handleDelete();
+              }} 
+              className="bg-destructive text-destructive-foreground"
+              disabled={isDeleting}
+            >
+              {isDeleting ? 'Removendo...' : 'Remover'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
