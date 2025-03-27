@@ -79,9 +79,35 @@ const AdminDashboard: React.FC = () => {
       )
       .subscribe();
     
+    // Configurar subscription para mensagens de broadcast
+    const broadcastChannel = supabase
+      .channel('custom-all-channel')
+      .on('broadcast', { event: 'user-change' }, async (payload) => {
+        console.log('Received user change broadcast:', payload);
+        
+        // Atualizar contagem de usuários quando receber broadcast
+        try {
+          const count = await getActiveUsersCount();
+          setActiveUsers(count);
+          
+          // Atualizar a estatística de usuários ativos
+          const newStats = [...stats];
+          newStats[1] = {
+            ...newStats[1],
+            count: count
+          };
+          
+          setUpdatedStats(newStats);
+        } catch (error) {
+          console.error('Erro ao atualizar após broadcast:', error);
+        }
+      })
+      .subscribe();
+    
     return () => {
-      // Cleanup do canal de subscription
+      // Cleanup dos canais de subscription
       supabase.removeChannel(usersChannel);
+      supabase.removeChannel(broadcastChannel);
     };
   }, []);
   

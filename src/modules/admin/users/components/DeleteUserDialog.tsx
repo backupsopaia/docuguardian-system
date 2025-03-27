@@ -13,6 +13,7 @@ import {
 import { User } from '@/modules/admin/users/api/userService';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface DeleteUserDialogProps {
   user: User | null;
@@ -32,12 +33,18 @@ export const DeleteUserDialog: React.FC<DeleteUserDialogProps> = ({
     
     // Notificar dashboard sobre a remoção do usuário
     setTimeout(() => {
-      supabase.channel('custom-all-channel')
-        .send({
-          type: 'broadcast',
-          event: 'user-change',
-          payload: { action: 'delete' }
-        });
+      try {
+        supabase.channel('custom-all-channel')
+          .send({
+            type: 'broadcast',
+            event: 'user-change',
+            payload: { action: 'delete' }
+          });
+        
+        console.log('Broadcast message sent for user deletion');
+      } catch (error) {
+        console.error('Error sending broadcast message:', error);
+      }
     }, 500);
   };
 

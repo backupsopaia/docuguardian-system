@@ -1,25 +1,19 @@
 
 import React from 'react';
-import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog';
+import { useForm } from 'react-hook-form';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Department } from '@/modules/admin/users/data/departments';
+import { createDepartment, updateDepartment } from '@/modules/admin/departments/api/departmentsService';
+import { toast } from 'sonner';
 import { DepartmentDialogHeader } from './DepartmentDialogHeader';
 import { DepartmentForm } from './DepartmentForm';
-import { Department } from '@/modules/admin/users/data/departments';
-import { z } from 'zod';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { toast } from 'sonner';
-import { createDepartment, updateDepartment } from '@/modules/admin/departments/api/departmentsService';
-import { supabase } from '@/integrations/supabase/client';
-
-// Schema validation
-const formSchema = z.object({
-  name: z.string().min(3, { message: 'Nome deve ter pelo menos 3 caracteres' }),
-  description: z.string().optional(),
-  isActive: z.boolean().default(true),
-});
-
-type FormValues = z.infer<typeof formSchema>;
 
 interface DepartmentDialogProps {
   open: boolean;
@@ -36,82 +30,69 @@ export const DepartmentDialog: React.FC<DepartmentDialogProps> = ({
 }) => {
   const isEditing = !!department;
   
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: isEditing
-      ? {
-          name: department.name,
-          description: department.description || '',
-          isActive: department.isActive,
-        }
-      : {
-          name: '',
-          description: '',
-          isActive: true,
-        },
+  // Define the form with required fields
+  const form = useForm<{
+    name: string;
+    description: string;
+    isActive: boolean;
+  }>({
+    defaultValues: {
+      name: department?.name || '',
+      description: department?.description || '',
+      isActive: department?.is_active ?? true,
+    },
   });
   
-  React.useEffect(() => {
-    if (open) {
-      form.reset(
-        isEditing
-          ? {
-              name: department?.name || '',
-              description: department?.description || '',
-              isActive: department?.isActive ?? true,
-            }
-          : {
-              name: '',
-              description: '',
-              isActive: true,
-            }
-      );
-    }
-  }, [open, department, isEditing, form]);
-  
-  const handleSubmit = async (values: FormValues) => {
+  const handleSubmit = async (values: {
+    name: string;
+    description: string;
+    isActive: boolean;
+  }) => {
     try {
       if (isEditing && department) {
-        await updateDepartment(department.id, values);
+        // Update existing department
+        await updateDepartment(department.id, {
+          name: values.name,
+          description: values.description,
+          is_active: values.isActive,
+        });
         toast.success(`Departamento ${values.name} atualizado com sucesso`);
       } else {
-        await createDepartment(values);
+        // Create new department
+        await createDepartment({
+          name: values.name,
+          description: values.description,
+          is_active: values.isActive,
+        });
         toast.success(`Departamento ${values.name} criado com sucesso`);
       }
       
-      // Fechar o diálogo e resetar o formulário
-      form.reset();
+      // Close dialog and refresh data
       onOpenChange(false);
-      
-      // Notificar que a operação foi concluída com sucesso
       if (onSuccess) {
         onSuccess();
       }
-      
-      // Notificar o painel do administrador sobre a mudança
-      supabase.channel('custom-all-channel')
-        .send({
-          type: 'broadcast',
-          event: 'department-change',
-          payload: { action: isEditing ? 'update' : 'create' }
-        });
-        
     } catch (error) {
-      console.error('Erro ao salvar departamento:', error);
-      toast.error(`Erro ao ${isEditing ? 'atualizar' : 'criar'} departamento`);
+      console.error('Error saving department:', error);
+      toast.error('Falha ao salvar departamento');
     }
+  };
+  
+  const handleCancel = () => {
+    onOpenChange(false);
+    form.reset();
   };
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[525px]">
-        <DepartmentDialogHeader department={department} />
+      <DialogContent className="sm:max-w-[500px]">
+        <DepartmentDialogHeader isEditing={isEditing} />
         
         <DepartmentForm 
           form={form} 
           onSubmit={handleSubmit} 
           isEditing={isEditing} 
-          onCancel={() => onOpenChange(false)} 
+          onCancel={handleCancel} 
         />
       </DialogContent>
     </Dialog>

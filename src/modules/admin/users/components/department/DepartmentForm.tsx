@@ -1,150 +1,94 @@
 
 import React from 'react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+import { UseFormReturn } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
-import { Department } from '../../data/departments';
+import { Switch } from '@/components/ui/switch';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { DialogFooter } from '@/components/ui/dialog';
+import { Loader2 } from 'lucide-react';
 
-const formSchema = z.object({
-  name: z.string().min(2, { message: 'Nome deve ter pelo menos 2 caracteres' }),
-  description: z.string().min(5, { message: 'Descrição deve ter pelo menos 5 caracteres' }),
-  isActive: z.boolean(),
-});
-
-export type DepartmentFormValues = z.infer<typeof formSchema>;
-
-interface DepartmentFormProps {
-  department: Department | null;
-  isSubmitting: boolean;
-  onSubmit: (values: DepartmentFormValues) => Promise<void>;
+export interface DepartmentFormProps {
+  form: UseFormReturn<{
+    name: string;
+    description: string;
+    isActive: boolean;
+  }>;
+  onSubmit: (values: {
+    name: string;
+    description: string;
+    isActive: boolean;
+  }) => Promise<void>;
+  isEditing: boolean;
   onCancel: () => void;
 }
 
 export const DepartmentForm: React.FC<DepartmentFormProps> = ({
-  department,
-  isSubmitting,
+  form,
   onSubmit,
+  isEditing,
   onCancel,
 }) => {
-  const isEditing = !!department;
-  
-  const form = useForm<DepartmentFormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: isEditing 
-      ? {
-          name: department?.name || '',
-          description: department?.description || '',
-          isActive: department?.isActive || true,
-        }
-      : {
-          name: '',
-          description: '',
-          isActive: true,
-        },
-  });
-  
-  React.useEffect(() => {
-    if (department) {
-      form.reset({
-        name: department.name || '',
-        description: department.description || '',
-        isActive: department.isActive || true,
-      });
-    } else {
-      form.reset({
-        name: '',
-        description: '',
-        isActive: true,
-      });
-    }
-  }, [department, form]);
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = form;
   
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-2">
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Nome do Departamento</FormLabel>
-              <FormControl>
-                <Input placeholder="Nome do departamento" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <div className="space-y-4 py-2">
+        <div className="space-y-2">
+          <Label htmlFor="name">Nome do Departamento</Label>
+          <Input
+            id="name"
+            {...register('name', { required: 'Nome é obrigatório' })}
+            placeholder="Ex: Marketing"
+          />
+          {errors.name && (
+            <p className="text-sm text-destructive">{errors.name.message}</p>
           )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Descrição</FormLabel>
-              <FormControl>
-                <Textarea 
-                  placeholder="Descrição do departamento e suas responsabilidades"
-                  className="resize-none"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="isActive"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-              <div className="space-y-0.5">
-                <FormLabel>Status do Departamento</FormLabel>
-                <FormDescription>
-                  Departamento está ativo na organização?
-                </FormDescription>
-              </div>
-              <FormControl>
-                <Switch
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-        
-        <div className="flex justify-end space-x-2 pt-2">
-          <Button 
-            type="button" 
-            variant="outline" 
-            onClick={onCancel}
-            disabled={isSubmitting}
-          >
-            Cancelar
-          </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting 
-              ? (isEditing ? 'Atualizando...' : 'Criando...') 
-              : (isEditing ? 'Atualizar' : 'Criar')
-            }
-          </Button>
         </div>
-      </form>
-    </Form>
+        
+        <div className="space-y-2">
+          <Label htmlFor="description">Descrição</Label>
+          <Textarea
+            id="description"
+            {...register('description')}
+            placeholder="Descreva o propósito do departamento"
+            rows={3}
+          />
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="isActive"
+            {...register('isActive')}
+          />
+          <Label htmlFor="isActive">Departamento Ativo</Label>
+        </div>
+      </div>
+      
+      <DialogFooter className="mt-6">
+        <Button 
+          type="button" 
+          variant="outline" 
+          onClick={onCancel}
+          disabled={isSubmitting}
+        >
+          Cancelar
+        </Button>
+        <Button 
+          type="submit"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              {isEditing ? 'Atualizando...' : 'Salvando...'}
+            </>
+          ) : (
+            isEditing ? 'Atualizar' : 'Salvar'
+          )}
+        </Button>
+      </DialogFooter>
+    </form>
   );
 };
