@@ -43,6 +43,8 @@ const formSchema = z.object({
   isActive: z.boolean(),
 });
 
+type FormValues = z.infer<typeof formSchema>;
+
 interface UserDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -53,7 +55,7 @@ interface UserDialogProps {
 export const UserDialog: React.FC<UserDialogProps> = ({ open, onOpenChange, user, onUserUpdated }) => {
   const isEditing = !!user;
   
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: isEditing 
       ? {
@@ -72,7 +74,7 @@ export const UserDialog: React.FC<UserDialogProps> = ({ open, onOpenChange, user
         },
   });
   
-  const handleSubmit = async (values: z.infer<typeof formSchema>) => {
+  const handleSubmit = async (values: FormValues) => {
     try {
       if (isEditing && user) {
         // For updates, we can pass partial data
