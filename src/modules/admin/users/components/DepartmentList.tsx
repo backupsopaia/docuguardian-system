@@ -92,7 +92,17 @@ export const DepartmentList: React.FC<DepartmentListProps> = ({
       }
       
       if (data) {
-        setLocalDepartments(data as Department[]);
+        // Map Supabase data to Department interface
+        const mappedDepartments = data.map(dept => ({
+          id: dept.id,
+          name: dept.name,
+          description: dept.description || '',
+          isActive: dept.is_active || false,
+          userCount: dept.user_count || 0,
+          createdAt: dept.created_at,
+          updatedAt: dept.updated_at
+        }));
+        setLocalDepartments(mappedDepartments);
       }
     } catch (error) {
       console.error('Unexpected error fetching departments:', error);

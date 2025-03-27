@@ -1,3 +1,4 @@
+
 import { Department } from '@/modules/admin/users/data/departments';
 import { apiFetch } from '@/lib/api';
 import { supabase } from '@/integrations/supabase/client';
@@ -24,9 +25,9 @@ export const getDepartments = async (): Promise<Department[]> => {
       return data.map(dept => ({
         id: dept.id,
         name: dept.name,
-        description: dept.description,
-        isActive: dept.is_active,
-        userCount: dept.user_count,
+        description: dept.description || '',
+        isActive: dept.is_active || false,
+        userCount: dept.user_count || 0,
         createdAt: dept.created_at,
         updatedAt: dept.updated_at
       }));
@@ -78,9 +79,9 @@ export const getDepartmentById = async (id: string): Promise<Department | undefi
       return {
         id: data.id,
         name: data.name,
-        description: data.description,
-        isActive: data.is_active,
-        userCount: data.user_count,
+        description: data.description || '',
+        isActive: data.is_active || false,
+        userCount: data.user_count || 0,
         createdAt: data.created_at,
         updatedAt: data.updated_at
       };
@@ -102,7 +103,11 @@ export const getDepartmentById = async (id: string): Promise<Department | undefi
 };
 
 // Create new department
-export const createDepartment = async (departmentData: Omit<Department, 'id' | 'userCount'>): Promise<Department> => {
+export const createDepartment = async (departmentData: { 
+  name: string; 
+  description: string; 
+  isActive: boolean; 
+}): Promise<Department> => {
   try {
     console.log('Creating department in Supabase:', departmentData);
     // Try to create a department in Supabase directly
@@ -128,9 +133,9 @@ export const createDepartment = async (departmentData: Omit<Department, 'id' | '
       return {
         id: data.id,
         name: data.name,
-        description: data.description,
-        isActive: data.is_active,
-        userCount: data.user_count,
+        description: data.description || '',
+        isActive: data.is_active || false,
+        userCount: data.user_count || 0,
         createdAt: data.created_at,
         updatedAt: data.updated_at
       };
@@ -152,7 +157,9 @@ export const createDepartment = async (departmentData: Omit<Department, 'id' | '
     // Generate a random ID and create a simulated new department
     const newDepartment: Department = {
       id: Math.random().toString(36).substring(2, 9),
-      ...departmentData,
+      name: departmentData.name,
+      description: departmentData.description,
+      isActive: departmentData.isActive,
       userCount: 0
     };
     
@@ -164,7 +171,11 @@ export const createDepartment = async (departmentData: Omit<Department, 'id' | '
 };
 
 // Update existing department
-export const updateDepartment = async (id: string, departmentData: Partial<Department>): Promise<Department> => {
+export const updateDepartment = async (id: string, departmentData: Partial<{
+  name: string;
+  description: string;
+  isActive: boolean;
+}>): Promise<Department> => {
   try {
     console.log(`Updating department ${id} in Supabase:`, departmentData);
     // Try to update the department in Supabase directly
@@ -190,9 +201,9 @@ export const updateDepartment = async (id: string, departmentData: Partial<Depar
       return {
         id: data.id,
         name: data.name,
-        description: data.description,
-        isActive: data.is_active,
-        userCount: data.user_count,
+        description: data.description || '',
+        isActive: data.is_active || false,
+        userCount: data.user_count || 0,
         createdAt: data.created_at,
         updatedAt: data.updated_at
       };

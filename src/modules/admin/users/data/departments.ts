@@ -5,6 +5,8 @@ export interface Department {
   description: string;
   userCount: number;
   isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export const departments: Department[] = [
