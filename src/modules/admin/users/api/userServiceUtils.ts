@@ -13,8 +13,8 @@ export const mapDbUserToFrontend = (dbUser: any): User => {
     role: dbUser.role,
     department: dbUser.department,
     isActive: dbUser.is_active,
-    createdAt: dbUser.created_at,
-    updatedAt: dbUser.updated_at,
+    created_at: dbUser.created_at,
+    updated_at: dbUser.updated_at,
   };
 };
 
@@ -30,4 +30,33 @@ export const mapFrontendUserToDb = (user: Omit<User, 'id'>): any => {
     department: user.department,
     is_active: user.isActive,
   };
+};
+
+/**
+ * Creates mock user data for fallback when the database is not available
+ */
+export const createMockUserData = (): User[] => {
+  console.log('Creating mock user data as fallback');
+  return [
+    {
+      id: '1',
+      name: 'Admin User',
+      email: 'admin@example.com',
+      role: 'admin',
+      department: 'Management',
+      isActive: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    },
+    {
+      id: '2',
+      name: 'Test User',
+      email: 'user@example.com',
+      role: 'user',
+      department: 'General',
+      isActive: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }
+  ];
 };
