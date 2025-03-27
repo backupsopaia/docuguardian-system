@@ -1,10 +1,10 @@
 
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import SecurityAlerts from '@/components/admin/dashboard/SecurityAlerts';
 import LoginActivityMonitor from '@/components/admin/dashboard/LoginActivityMonitor';
 import SecuritySettings from '@/components/admin/security/SecuritySettings';
+import AuditLogs from '@/components/admin/security/AuditLogs';
 import { securityAlerts, loginAttempts } from '@/modules/admin/dashboard/data/security';
 
 const Security = () => {
@@ -36,18 +36,7 @@ const Security = () => {
         </TabsContent>
 
         <TabsContent value="logs">
-          <Card>
-            <CardHeader>
-              <CardTitle>Logs de Auditoria</CardTitle>
-              <CardDescription>Registros detalhados de atividades de segurança no sistema</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Os logs de auditoria serão exibidos aqui. Eles fornecem informações detalhadas sobre ações de usuários, 
-                alterações de configuração e eventos de segurança.
-              </p>
-            </CardContent>
-          </Card>
+          <AuditLogs />
         </TabsContent>
       </Tabs>
     </div>

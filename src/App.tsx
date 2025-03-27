@@ -18,6 +18,12 @@ import UserManagement from "./modules/admin/users/components/UserManagement";
 import DepartmentManagement from "./modules/admin/departments/components/DepartmentManagement";
 import Security from "./pages/admin/Security";
 
+// Document management pages
+import AllDocuments from "./pages/admin/documents/AllDocuments";
+import PendingDocuments from "./pages/admin/documents/PendingDocuments";
+import ApprovedDocuments from "./pages/admin/documents/ApprovedDocuments";
+import ArchivedDocuments from "./pages/admin/documents/ArchivedDocuments";
+
 // Layouts
 import MainLayout from "./components/layouts/MainLayout";
 
@@ -116,10 +122,10 @@ const AppRoutes = () => (
       <Route path="dashboard" element={<AdminDashboard />} />
       
       {/* Document management */}
-      <Route path="documents" element={<PlaceholderPage title="Todos os Documentos" />} />
-      <Route path="documents/pending" element={<PlaceholderPage title="Documentos Pendentes" />} />
-      <Route path="documents/approved" element={<PlaceholderPage title="Documentos Aprovados" />} />
-      <Route path="documents/archived" element={<PlaceholderPage title="Documentos Arquivados" />} />
+      <Route path="documents" element={<AllDocuments />} />
+      <Route path="documents/pending" element={<PendingDocuments />} />
+      <Route path="documents/approved" element={<ApprovedDocuments />} />
+      <Route path="documents/archived" element={<ArchivedDocuments />} />
       
       {/* BPM */}
       <Route path="bpm/workflows" element={<PlaceholderPage title="Fluxos de Trabalho" />} />
