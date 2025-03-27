@@ -50,6 +50,34 @@ const helpTips: Record<string, { title: string; description: string }> = {
     title: 'Ações de Documentos',
     description: 'Clique nos ícones para realizar ações como aprovar (✓), rejeitar (×), visualizar (👁️) ou mais opções (⋮).'
   },
+  'documents-view': {
+    title: 'Visualizar Documento',
+    description: 'Abre o documento para visualização detalhada. Você poderá ver o conteúdo completo e metadados associados.'
+  },
+  'documents-approve': {
+    title: 'Aprovar Documento',
+    description: 'Marca o documento como aprovado, tornando-o disponível para uso no sistema. Esta ação pode requerer permissões especiais.'
+  },
+  'documents-reject': {
+    title: 'Rejeitar Documento',
+    description: 'Marca o documento como rejeitado, indicando que ele não atende aos requisitos necessários. É possível adicionar um motivo para rejeição.'
+  },
+  'documents-archive': {
+    title: 'Arquivar Documento',
+    description: 'Move o documento para o arquivo, mantendo-o no sistema mas removendo-o das listas ativas. Documentos arquivados podem ser restaurados posteriormente.'
+  },
+  'documents-restore': {
+    title: 'Restaurar Documento',
+    description: 'Retorna um documento arquivado para seu status anterior, tornando-o novamente visível nas listas ativas.'
+  },
+  'documents-delete': {
+    title: 'Excluir Documento',
+    description: 'Remove permanentemente o documento do sistema. Esta ação não pode ser desfeita e requer confirmação.'
+  },
+  'documents-more-actions': {
+    title: 'Mais Ações',
+    description: 'Opções adicionais disponíveis para este documento, como download, edição ou compartilhamento.'
+  },
   
   // Storage
   'storage': {

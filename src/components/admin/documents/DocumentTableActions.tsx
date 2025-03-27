@@ -52,78 +52,92 @@ export const DocumentTableActions: React.FC<DocumentTableActionsProps> = ({
 }) => {
   return (
     <div className="flex justify-end gap-2">
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => onView && onView(documentId)}
-        title="Visualizar"
-      >
-        <Eye className="h-4 w-4" />
-      </Button>
+      <HelpTooltip helpId="documents-view" text="Visualizar detalhes do documento">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => onView && onView(documentId)}
+          title="Visualizar"
+        >
+          <Eye className="h-4 w-4" />
+        </Button>
+      </HelpTooltip>
 
       {type === 'pending' && (
         <>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onApprove && onApprove(documentId)}
-            className="text-green-600 hover:text-green-700 hover:bg-green-50"
-            title="Aprovar"
-          >
-            <CheckSquare className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onReject && onReject(documentId)}
-            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-            title="Rejeitar"
-          >
-            <X className="h-4 w-4" />
-          </Button>
+          <HelpTooltip helpId="documents-approve" text="Aprovar este documento">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onApprove && onApprove(documentId)}
+              className="text-green-600 hover:text-green-700 hover:bg-green-50"
+              title="Aprovar"
+            >
+              <CheckSquare className="h-4 w-4" />
+            </Button>
+          </HelpTooltip>
+          <HelpTooltip helpId="documents-reject" text="Rejeitar este documento">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onReject && onReject(documentId)}
+              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+              title="Rejeitar"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </HelpTooltip>
         </>
       )}
 
       {type === 'approved' && (
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => onArchive && onArchive(documentId)}
-          title="Arquivar"
-        >
-          <Archive className="h-4 w-4" />
-        </Button>
+        <HelpTooltip helpId="documents-archive" text="Arquivar documento">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onArchive && onArchive(documentId)}
+            title="Arquivar"
+          >
+            <Archive className="h-4 w-4" />
+          </Button>
+        </HelpTooltip>
       )}
 
       {type === 'archived' && (
         <>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onRestore && onRestore(documentId)}
-            title="Restaurar"
-          >
-            <RotateCcw className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onDelete && onDelete(documentId)}
-            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-            title="Excluir"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
+          <HelpTooltip helpId="documents-restore" text="Restaurar documento para o sistema ativo">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onRestore && onRestore(documentId)}
+              title="Restaurar"
+            >
+              <RotateCcw className="h-4 w-4" />
+            </Button>
+          </HelpTooltip>
+          <HelpTooltip helpId="documents-delete" text="Excluir documento permanentemente">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onDelete && onDelete(documentId)}
+              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+              title="Excluir"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </HelpTooltip>
         </>
       )}
 
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon">
-            <span className="sr-only">Mais ações</span>
-            <MoreVertical className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
+        <HelpTooltip helpId="documents-more-actions" text="Mais ações para este documento">
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <span className="sr-only">Mais ações</span>
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+        </HelpTooltip>
         <DropdownMenuContent align="end">
           <DropdownMenuItem onClick={() => onDownload && onDownload(documentId)}>
             <Download className="mr-2 h-4 w-4" />
