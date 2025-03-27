@@ -6,7 +6,7 @@ import { mapDbUserToFrontend } from './userServiceUtils';
 // Create a new user with improved Supabase integration
 export const createUser = async (userData: Omit<User, 'id'>): Promise<User> => {
   try {
-    console.log('Creating user in database:', userData);
+    console.log('Creating user in database with data:', userData);
     
     // Transform frontend format to database format
     const dbUser = {
@@ -16,6 +16,8 @@ export const createUser = async (userData: Omit<User, 'id'>): Promise<User> => {
       department: userData.department,
       is_active: userData.isActive
     };
+    
+    console.log('Transformed data for database:', dbUser);
     
     // Insert directly to Supabase with better error handling
     const { data, error } = await supabase

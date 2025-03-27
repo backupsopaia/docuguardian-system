@@ -1,45 +1,42 @@
 
-import { fromTable } from '@/integrations/supabase/client';
-import { User, UserResponse } from './types';
-import { mapFrontendUserToDb, mapDbUserToFrontend } from './userServiceUtils';
+import { supabase } from '@/integrations/supabase/client';
+import { User } from './types';
+import { mapDbUserToFrontend } from './userServiceUtils';
 
-// Update an existing user
 export const updateUser = async (id: string, userData: Partial<User>): Promise<User> => {
   try {
-    // Transform frontend format to database format
-    const dbUser = mapFrontendUserToDb(userData);
+    console.log('Updating user in database:', id, userData);
     
-    // Perform update in a way that doesn't block UI
-    return new Promise((resolve, reject) => {
-      setTimeout(async () => {
-        try {
-          const { data, error } = await fromTable('users')
-            .update(dbUser)
-            .eq('id', id)
-            .select();
-          
-          if (error) {
-            console.error('Error updating user:', error);
-            reject(new Error(error.message));
-            return;
-          }
-          
-          // Handle case where data is null or not an array
-          if (!data || !Array.isArray(data) || data.length === 0) {
-            reject(new Error('Failed to update user: No data returned'));
-            return;
-          }
-          
-          // Map response back to frontend format
-          resolve(mapDbUserToFrontend(data[0]));
-        } catch (err) {
-          console.error('Error in updateUser async operation:', err);
-          reject(err);
-        }
-      }, 0);
-    });
+    // Transform frontend format to database format
+    const dbUser = {
+      name: userData.name,
+      email: userData.email,
+      role: userData.role,
+      department: userData.department,
+      is_active: userData.isActive
+    };
+    
+    console.log('Transformed update data for database:', dbUser);
+    
+    // Update user in Supabase
+    const { data, error } = await supabase
+      .from('users')
+      .update(dbUser)
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error updating user in Supabase:', error);
+      throw new Error(`Failed to update user: ${error.message}`);
+    }
+    
+    console.log('User updated successfully, response data:', data);
+    
+    // Map response back to frontend format
+    return mapDbUserToFrontend(data);
   } catch (error) {
-    console.error('Error preparing updateUser:', error);
+    console.error('Error updating user:', error);
     throw error;
   }
 };

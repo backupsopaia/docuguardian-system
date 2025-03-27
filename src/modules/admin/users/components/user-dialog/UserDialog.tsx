@@ -41,11 +41,14 @@ export const UserDialog: React.FC<UserDialogProps> = ({
     
     try {
       setIsSubmitting(true);
+      console.log('Submitting form with values:', values);
       
       if (isEditing && user) {
+        console.log('Updating existing user:', user.id, values);
         await updateUser(user.id, values);
         toast.success(`Usuário ${values.name} atualizado com sucesso`);
       } else {
+        console.log('Creating new user with values:', values);
         const newUser: Omit<User, 'id'> = {
           name: values.name,
           email: values.email,

@@ -62,7 +62,7 @@ export const UserForm: React.FC<UserFormProps> = ({
           role: (user?.role as 'admin' | 'user') || 'user' as const,
           department: user?.department || '',
           isActive: user?.isActive || true,
-          password: undefined,
+          password: '',
         }
       : {
           name: '',
@@ -76,9 +76,14 @@ export const UserForm: React.FC<UserFormProps> = ({
     form.reset(values);
   }, [form, user, isEditing]);
 
+  const handleFormSubmit = async (values: UserFormValues) => {
+    console.log("Form values being submitted:", values);
+    await onSubmit(values);
+  };
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-2">
+      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4 pt-2">
         <FormField
           control={form.control}
           name="name"
