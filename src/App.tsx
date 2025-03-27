@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -28,6 +27,26 @@ import ReportsPage from "./pages/admin/documents/ReportsPage";
 
 // Layouts
 import MainLayout from "./components/layouts/MainLayout";
+
+// QueryClient instance
+const queryClient = new QueryClient();
+
+// Main App component with routes nested inside providers
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <BrowserRouter>
+        <ThemeProvider>
+          <AuthProvider>
+            <AppRoutes />
+            <Toaster />
+            <Sonner />
+          </AuthProvider>
+        </ThemeProvider>
+      </BrowserRouter>
+    </TooltipProvider>
+  </QueryClientProvider>
+);
 
 // Protected route wrapper
 const ProtectedRoute = ({ children, adminOnly = false }: { children: React.ReactNode; adminOnly?: boolean }) => {
@@ -74,8 +93,7 @@ const PlaceholderPage = ({ title }: { title: string }) => (
   </div>
 );
 
-const queryClient = new QueryClient();
-
+// Routes component extracted to avoid the AuthProvider/useAuth error
 const AppRoutes = () => (
   <Routes>
     {/* Public routes */}
@@ -172,22 +190,6 @@ const AppRoutes = () => (
     {/* 404 */}
     <Route path="*" element={<NotFound />} />
   </Routes>
-);
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <BrowserRouter>
-        <ThemeProvider>
-          <AuthProvider>
-            <AppRoutes />
-            <Toaster />
-            <Sonner />
-          </AuthProvider>
-        </ThemeProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
 );
 
 export default App;

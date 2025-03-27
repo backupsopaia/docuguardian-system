@@ -8,7 +8,8 @@ import AuditLogs from '@/components/admin/security/AuditLogs';
 import LoginAuditLogs from '@/components/admin/security/LoginAuditLogs';
 import RolesPermissions from '@/components/admin/security/RolesPermissions';
 import { securityAlerts, loginAttempts } from '@/modules/admin/dashboard/data/security';
-import { ShieldCheck, UserCog, AlertTriangle, History, Settings } from 'lucide-react';
+import { ShieldCheck, UserCog, AlertTriangle, History, Settings, ServerIcon } from 'lucide-react';
+import ApiCommunication from '@/components/admin/security/ApiCommunication';
 
 const Security = () => {
   return (
@@ -42,6 +43,10 @@ const Security = () => {
             <Settings className="h-4 w-4" />
             Configurações
           </TabsTrigger>
+          <TabsTrigger value="api" className="flex items-center gap-1">
+            <ServerIcon className="h-4 w-4" />
+            API Comunicação
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -65,6 +70,10 @@ const Security = () => {
 
         <TabsContent value="settings">
           <SecuritySettings />
+        </TabsContent>
+        
+        <TabsContent value="api">
+          <ApiCommunication />
         </TabsContent>
       </Tabs>
     </div>
