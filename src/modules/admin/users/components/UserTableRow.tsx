@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { User } from '../api/userService';
+import { User } from '../api/types';
 import { UserActionsDropdown } from './UserActionsDropdown';
 
 interface UserTableRowProps {

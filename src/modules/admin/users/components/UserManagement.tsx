@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { UserManagementHeader } from './UserManagementHeader';
 import { UsersTabs } from './tabs/UsersTabs';
@@ -7,7 +6,7 @@ import { DepartmentDialog } from './department';
 import { AccessRestrictionsDialog } from './AccessRestrictionsDialog';
 import { getDepartments } from '@/modules/admin/departments/api/departmentsService';
 import { Department } from '../data/departments';
-import { User } from '../api/userService';
+import { User } from '../api/types';
 
 const UserManagement: React.FC = () => {
   const [activeTab, setActiveTab] = useState('users');

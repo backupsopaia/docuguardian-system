@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { UsersList } from '../UsersList';
-import { User } from '../../api/userService';
+import { User } from '../../api/types';
 
 interface UsersTabContentProps {
   onAddUser: () => void;

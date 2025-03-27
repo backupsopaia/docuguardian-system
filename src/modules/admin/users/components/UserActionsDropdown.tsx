@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { FileEdit, Trash2, ShieldCheck, UserCog } from 'lucide-react';
 import {
@@ -10,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { User } from '../api/userService';
+import { User } from '../api/types';
 
 interface UserActionsDropdownProps {
   user: User;
