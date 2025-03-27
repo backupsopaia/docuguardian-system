@@ -37,15 +37,15 @@ export const mapDbUserToFrontend = (dbUser: any): User => {
   };
 };
 
-// Update the type to include optional password
-interface UserWithPassword extends Omit<User, "id"> {
+// Define the type for user data when creating/updating
+export interface UserInput extends Omit<User, 'id'> {
   password?: string;
 }
 
 /**
  * Map frontend user format to database format
  */
-export const mapFrontendUserToDb = (frontendUser: UserWithPassword): any => {
+export const mapFrontendUserToDb = (frontendUser: UserInput): any => {
   return {
     name: frontendUser.name,
     email: frontendUser.email,
