@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -23,6 +24,7 @@ import AllDocuments from "./pages/admin/documents/AllDocuments";
 import PendingDocuments from "./pages/admin/documents/PendingDocuments";
 import ApprovedDocuments from "./pages/admin/documents/ApprovedDocuments";
 import ArchivedDocuments from "./pages/admin/documents/ArchivedDocuments";
+import ReportsPage from "./pages/admin/documents/ReportsPage";
 
 // Layouts
 import MainLayout from "./components/layouts/MainLayout";
@@ -126,6 +128,7 @@ const AppRoutes = () => (
       <Route path="documents/pending" element={<PendingDocuments />} />
       <Route path="documents/approved" element={<ApprovedDocuments />} />
       <Route path="documents/archived" element={<ArchivedDocuments />} />
+      <Route path="documents/reports" element={<ReportsPage />} />
       
       {/* BPM */}
       <Route path="bpm/workflows" element={<PlaceholderPage title="Fluxos de Trabalho" />} />
