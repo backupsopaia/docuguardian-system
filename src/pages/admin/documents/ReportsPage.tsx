@@ -117,7 +117,7 @@ const ReportsPage = () => {
       setIsLoading(true);
       
       const exportRequest: ExportRequest = {
-        format,
+        format: format,  // Fixed: Use format as a property, not as a function
         data: reportData,
         filters: {
           startDate: filter.startDate ? format(filter.startDate, 'yyyy-MM-dd') : undefined,
@@ -128,7 +128,8 @@ const ReportsPage = () => {
         }
       };
       
-      await exportReport(exportRequest);
+      // Call exportReport as a function with request object parameter
+      const result = await exportReport(exportRequest);
       
       toast({
         title: "Exportação iniciada",
