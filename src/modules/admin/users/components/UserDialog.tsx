@@ -233,11 +233,11 @@ export const UserDialog: React.FC<UserDialogProps> = ({
                       value={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="w-full">
                           <SelectValue placeholder="Selecione uma função" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent position="popper" className="bg-popover border border-border">
                         <SelectItem value="admin">Administrador</SelectItem>
                         <SelectItem value="user">Usuário</SelectItem>
                       </SelectContent>
@@ -259,11 +259,11 @@ export const UserDialog: React.FC<UserDialogProps> = ({
                       value={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="w-full">
                           <SelectValue placeholder="Selecione um departamento" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent position="popper" className="bg-popover border border-border">
                         {departments.map(dept => (
                           <SelectItem key={dept.id} value={dept.name}>
                             {dept.name}
