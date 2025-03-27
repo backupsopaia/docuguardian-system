@@ -17,6 +17,8 @@ export const getUsers = async (): Promise<User[]> => {
     
     if (error) {
       console.error('Error fetching users:', error);
+      // Log the error for debugging purposes
+      console.log('Supabase error details:', JSON.stringify(error));
       // Return mock data in a non-blocking way
       return Promise.resolve(createMockUserData());
     }
@@ -37,11 +39,15 @@ export const getUsers = async (): Promise<User[]> => {
     return new Promise(resolve => {
       setTimeout(() => {
         const mappedData = data.map(user => mapDbUserToFrontend(user));
+        // Log the fetched users for debugging
+        console.log(`Fetched ${mappedData.length} users from database`);
         resolve(mappedData);
       }, 0);
     });
   } catch (error) {
     console.error('Error fetching users:', error);
+    // Log the error for debugging purposes
+    console.log('Unexpected error details:', error instanceof Error ? error.message : String(error));
     // Return mock data in a non-blocking way
     return new Promise(resolve => {
       setTimeout(() => {

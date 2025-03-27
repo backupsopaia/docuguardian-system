@@ -20,38 +20,38 @@ export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions, ref
   const [error, setError] = useState<string | null>(null);
   
   // Optimized data loading function that doesn't block the UI
-  const loadUsers = useCallback(() => {
+  const loadUsers = useCallback(async () => {
     if (!isLoading) {
       setIsLoading(true);
     }
     setError(null);
     
-    // Use a micro-task to prevent UI blocking
-    setTimeout(async () => {
-      try {
-        const fetchedUsers = await getUsers();
-        
-        // Ensure we're working with an array before setting state
-        if (Array.isArray(fetchedUsers)) {
-          setUsers(fetchedUsers);
-        } else {
-          console.error('Expected users to be an array but got:', typeof fetchedUsers);
-          setUsers([]);
-          setError('Failed to load users: Invalid data format');
-          toast.error('Falha ao carregar usuários: formato inválido');
-        }
-      } catch (error) {
-        console.error('Failed to load users:', error);
+    try {
+      console.log('Loading users...');
+      const fetchedUsers = await getUsers();
+      
+      // Ensure we're working with an array before setting state
+      if (Array.isArray(fetchedUsers)) {
+        console.log(`Successfully loaded ${fetchedUsers.length} users`);
+        setUsers(fetchedUsers);
+      } else {
+        console.error('Expected users to be an array but got:', typeof fetchedUsers);
         setUsers([]);
-        setError('Failed to load users');
-        toast.error('Falha ao carregar usuários');
-      } finally {
-        setIsLoading(false);
+        setError('Failed to load users: Invalid data format');
+        toast.error('Falha ao carregar usuários: formato inválido');
       }
-    }, 0);
+    } catch (error) {
+      console.error('Failed to load users:', error);
+      setUsers([]);
+      setError('Failed to load users');
+      toast.error('Falha ao carregar usuários');
+    } finally {
+      setIsLoading(false);
+    }
   }, [isLoading]);
   
   useEffect(() => {
+    console.log('UsersList effect triggered, refreshTrigger:', refreshTrigger);
     loadUsers();
   }, [loadUsers, refreshTrigger]);
   

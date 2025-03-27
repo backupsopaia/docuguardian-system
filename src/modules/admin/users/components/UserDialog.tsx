@@ -73,7 +73,6 @@ export const UserDialog: React.FC<UserDialogProps> = ({ open, onOpenChange, user
         },
   });
   
-  // Reset form when dialog opens/closes or user changes
   React.useEffect(() => {
     if (open) {
       form.reset(isEditing 
@@ -97,33 +96,29 @@ export const UserDialog: React.FC<UserDialogProps> = ({ open, onOpenChange, user
   const handleSubmit = async (values: FormValues) => {
     try {
       if (isEditing && user) {
-        // For updates, we can pass partial data
         await updateUser(user.id, values);
         toast.success(`Usuário ${values.name} atualizado com sucesso`);
       } else {
-        // For creation, we need to ensure all required fields are present
         const newUser: Omit<User, 'id'> = {
           name: values.name,
           email: values.email,
           role: values.role,
           department: values.department,
           isActive: values.isActive,
-          // Add password only if it's provided (for new users)
           ...(values.password ? { password: values.password } : {})
         };
         
-        await createUser(newUser);
+        console.log('Creating new user:', newUser);
+        const createdUser = await createUser(newUser);
+        console.log('User created successfully:', createdUser);
         toast.success(`Usuário ${values.name} criado com sucesso`);
       }
       
-      // Explicitly reset form
       form.reset();
-      
-      // Close dialog
       onOpenChange(false);
       
-      // Call the callback immediately to refresh the user list
       if (onUserUpdated) {
+        console.log('Triggering user updated callback');
         onUserUpdated();
       }
     } catch (error) {
@@ -134,7 +129,6 @@ export const UserDialog: React.FC<UserDialogProps> = ({ open, onOpenChange, user
   
   return (
     <Dialog open={open} onOpenChange={(newOpen) => {
-      // If closing, ensure we clear the form
       if (!newOpen) {
         form.reset();
       }
