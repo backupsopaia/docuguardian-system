@@ -10,7 +10,7 @@ import { format } from 'date-fns';
 import { CalendarIcon, ChevronDown, Download, FileText, PieChart, BarChart, Table } from 'lucide-react';
 import { Table as UITable, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { getDocumentReports, exportReport } from '@/modules/admin/documents/api/reportsService';
+import { getDocumentReports, exportReport, ExportRequest } from '@/modules/admin/documents/api/reportsService';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart as RechartsPieChart, Pie, Cell } from 'recharts';
 
@@ -42,6 +42,29 @@ type ReportData = {
 };
 
 const COLORS = ['#8B5CF6', '#D946EF', '#F97316', '#0EA5E9', '#22C55E', '#EAB308', '#6366F1'];
+
+const chartConfig = {
+  approved: { color: "#22C55E" },
+  pending: { color: "#EAB308" },
+  rejected: { color: "#EF4444" },
+  archived: { color: "#6B7280" },
+  "Políticas": { color: "#8B5CF6" },
+  "Manuais": { color: "#D946EF" },
+  "Relatórios": { color: "#F97316" },
+  "Contratos": { color: "#0EA5E9" },
+  "Guias": { color: "#22C55E" },
+  "Planos": { color: "#EAB308" },
+  "Procedimentos": { color: "#6366F1" },
+  "Propostas": { color: "#6B7280" },
+  "TI": { color: "#8B5CF6" },
+  "RH": { color: "#D946EF" },
+  "Financeiro": { color: "#F97316" },
+  "Jurídico": { color: "#0EA5E9" },
+  "Marketing": { color: "#22C55E" },
+  "Operações": { color: "#EAB308" },
+  "Compliance": { color: "#6366F1" },
+  "Comercial": { color: "#6B7280" },
+};
 
 const ReportsPage = () => {
   const [filter, setFilter] = useState<ReportFilter>({
@@ -92,7 +115,8 @@ const ReportsPage = () => {
     
     try {
       setIsLoading(true);
-      await exportReport({
+      
+      const exportRequest: ExportRequest = {
         format,
         data: reportData,
         filters: {
@@ -102,7 +126,9 @@ const ReportsPage = () => {
           category: filter.category,
           department: filter.department
         }
-      });
+      };
+      
+      await exportReport(exportRequest);
       
       toast({
         title: "Exportação iniciada",
@@ -344,12 +370,7 @@ const ReportsPage = () => {
                   <div className="h-[400px] w-full py-4">
                     <ChartContainer 
                       className="h-full" 
-                      config={{
-                        approved: { color: "#22C55E" },
-                        pending: { color: "#EAB308" },
-                        rejected: { color: "#EF4444" },
-                        archived: { color: "#6B7280" },
-                      }}
+                      config={chartConfig}
                     >
                       <RechartsBarChart data={reportData.summary.byCategory}>
                         <XAxis dataKey="name" />
@@ -361,7 +382,10 @@ const ReportsPage = () => {
                   </div>
                 ) : (
                   <div className="h-[400px] w-full py-4">
-                    <ChartContainer className="h-full">
+                    <ChartContainer 
+                      className="h-full"
+                      config={chartConfig}
+                    >
                       <RechartsPieChart>
                         <Pie
                           data={reportData.summary.byStatus}
@@ -392,7 +416,10 @@ const ReportsPage = () => {
                     </CardHeader>
                     <CardContent>
                       <div className="h-[200px]">
-                        <ChartContainer className="h-full">
+                        <ChartContainer 
+                          className="h-full"
+                          config={chartConfig}
+                        >
                           <RechartsPieChart>
                             <Pie
                               data={reportData.summary.byStatus}
@@ -420,7 +447,10 @@ const ReportsPage = () => {
                     </CardHeader>
                     <CardContent>
                       <div className="h-[200px]">
-                        <ChartContainer className="h-full">
+                        <ChartContainer 
+                          className="h-full"
+                          config={chartConfig}
+                        >
                           <RechartsPieChart>
                             <Pie
                               data={reportData.summary.byCategory}
@@ -448,7 +478,10 @@ const ReportsPage = () => {
                     </CardHeader>
                     <CardContent>
                       <div className="h-[200px]">
-                        <ChartContainer className="h-full">
+                        <ChartContainer 
+                          className="h-full"
+                          config={chartConfig}
+                        >
                           <RechartsPieChart>
                             <Pie
                               data={reportData.summary.byDepartment}
