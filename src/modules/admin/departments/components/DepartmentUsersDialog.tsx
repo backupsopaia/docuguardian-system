@@ -1,8 +1,6 @@
 
-import React, { useState, useEffect, useRef } from 'react';
-import { useForm } from 'react-hook-form';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Dialog,
   DialogContent,
@@ -38,40 +36,37 @@ export const DepartmentUsersDialog: React.FC<DepartmentUsersDialogProps> = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [departmentUsers, setDepartmentUsers] = useState<any[]>([]);
-  // Ref to track component mounted state
   const isMounted = useRef(true);
-  const initialized = useRef(false);
+  const isInitialized = useRef(false);
   
-  // Clean up function to prevent state updates after unmount
+  // Cleanup function to prevent state updates after unmount
   useEffect(() => {
     return () => {
       isMounted.current = false;
     };
   }, []);
   
-  // Reset state when dialog opens/closes or department changes
+  // Initialize state when dialog opens with department data
   useEffect(() => {
-    if (open && department && !initialized.current) {
-      initialized.current = true;
+    if (open && department && !isInitialized.current) {
+      // Set initialization flag
+      isInitialized.current = true;
       
-      // Use a safe timeout to prevent React reconciliation issues
-      const timer = setTimeout(() => {
-        if (isMounted.current) {
-          const assignedUsers = mockUsers.filter(user => 
-            user.department === department.name
-          );
-          setDepartmentUsers(assignedUsers);
-          setSearchQuery('');
-        }
-      }, 50);
+      // Find users assigned to this department
+      const assignedUsers = mockUsers.filter(user => 
+        user.department === department.name
+      );
       
-      return () => clearTimeout(timer);
+      // Update state synchronously to avoid React reconciliation issues
+      setDepartmentUsers(assignedUsers);
+      setSearchQuery('');
     } else if (!open) {
-      initialized.current = false;
+      // Reset initialization flag when dialog closes
+      isInitialized.current = false;
     }
   }, [department, open]);
   
-  // Safe filtering with null checks
+  // Filtered users based on search query
   const filteredUsers = React.useMemo(() => {
     if (!searchQuery) return mockUsers;
     
@@ -81,28 +76,26 @@ export const DepartmentUsersDialog: React.FC<DepartmentUsersDialogProps> = ({
     );
   }, [searchQuery]);
   
-  const isUserInDepartment = (userId: string) => {
+  // Check if a user is assigned to the department
+  const isUserInDepartment = useCallback((userId: string) => {
     return departmentUsers.some(u => u.id === userId);
-  };
+  }, [departmentUsers]);
   
-  const toggleUserAssignment = (user: any) => {
+  // Toggle user assignment to department
+  const toggleUserAssignment = useCallback((user: any) => {
     if (!isMounted.current) return;
     
-    // Use setTimeout to avoid immediate DOM updates
-    setTimeout(() => {
-      if (isMounted.current) {
-        setDepartmentUsers(prev => {
-          if (isUserInDepartment(user.id)) {
-            return prev.filter(u => u.id !== user.id);
-          } else {
-            return [...prev, user];
-          }
-        });
+    setDepartmentUsers(prev => {
+      if (isUserInDepartment(user.id)) {
+        return prev.filter(u => u.id !== user.id);
+      } else {
+        return [...prev, user];
       }
-    }, 10);
-  };
+    });
+  }, [isUserInDepartment]);
   
-  const handleSave = () => {
+  // Handle save button click
+  const handleSave = useCallback(() => {
     if (!isMounted.current || !department) return;
     
     // In a real app, you would make an API call here
@@ -110,35 +103,28 @@ export const DepartmentUsersDialog: React.FC<DepartmentUsersDialogProps> = ({
     
     toast.success(`Usuários do departamento ${department.name} atualizados com sucesso`);
     
-    // Safely close the dialog
-    setTimeout(() => {
-      if (isMounted.current) {
-        setSearchQuery('');
-        onOpenChange(false);
-      }
-    }, 100);
-  };
+    if (isMounted.current) {
+      setSearchQuery('');
+      onOpenChange(false);
+    }
+  }, [department, departmentUsers, onOpenChange]);
   
-  // Safely handle search input changes
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle search input changes
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (isMounted.current) {
       setSearchQuery(e.target.value);
     }
-  };
+  }, []);
   
-  // Close dialog handler with safety check
-  const handleCloseDialog = () => {
+  // Handle dialog close
+  const handleCloseDialog = useCallback(() => {
     if (isMounted.current) {
-      // Clear state before closing to prevent memory leaks
-      setTimeout(() => {
-        if (isMounted.current) {
-          setSearchQuery('');
-          onOpenChange(false);
-        }
-      }, 50);
+      setSearchQuery('');
+      onOpenChange(false);
     }
-  };
+  }, [onOpenChange]);
   
+  // Don't render anything if department is null
   if (!department) return null;
   
   return (

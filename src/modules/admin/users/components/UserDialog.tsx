@@ -1,5 +1,5 @@
 
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -73,55 +73,45 @@ export const UserDialog: React.FC<UserDialogProps> = ({
   
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: isEditing 
-      ? {
-          name: user?.name || '',
-          email: user?.email || '',
-          role: user?.role || 'user',
-          department: user?.department || '',
-          isActive: user?.isActive || true,
-        }
-      : {
-          name: '',
-          email: '',
-          role: 'user',
-          department: '',
-          isActive: true,
-        },
+    defaultValues: {
+      name: '',
+      email: '',
+      role: 'user',
+      department: '',
+      isActive: true,
+      password: '',
+    },
   });
   
   // Reset form when dialog opens or user changes
   useEffect(() => {
-    if (open && !formInitialized.current) {
+    if (open) {
       formInitialized.current = true;
       
-      // Use setTimeout to avoid DOM manipulation issues
-      setTimeout(() => {
-        if (isMounted.current) {
-          form.reset(isEditing 
-            ? {
-                name: user?.name || '',
-                email: user?.email || '',
-                role: user?.role || 'user',
-                department: user?.department || '',
-                isActive: user?.isActive || true,
-              }
-            : {
-                name: '',
-                email: '',
-                password: '',
-                role: 'user',
-                department: '',
-                isActive: true,
-              });
-        }
-      }, 50);
-    } else if (!open) {
-      formInitialized.current = false;
+      const values = isEditing && user 
+        ? {
+            name: user?.name || '',
+            email: user?.email || '',
+            role: (user?.role as 'admin' | 'user') || 'user',
+            department: user?.department || '',
+            isActive: user?.isActive || true,
+            password: undefined,
+          }
+        : {
+            name: '',
+            email: '',
+            password: '',
+            role: 'user',
+            department: '',
+            isActive: true,
+          };
+      
+      // Reset synchronously to avoid React reconciliation issues
+      form.reset(values);
     }
   }, [open, user, isEditing, form]);
   
-  const handleSubmit = async (values: FormValues) => {
+  const handleSubmit = useCallback(async (values: FormValues) => {
     if (!isMounted.current || isSubmitting) return;
     
     try {
@@ -129,9 +119,7 @@ export const UserDialog: React.FC<UserDialogProps> = ({
       
       if (isEditing && user) {
         await updateUser(user.id, values);
-        if (isMounted.current) {
-          toast.success(`Usuário ${values.name} atualizado com sucesso`);
-        }
+        toast.success(`Usuário ${values.name} atualizado com sucesso`);
       } else {
         const newUser: Omit<User, 'id'> = {
           name: values.name,
@@ -142,34 +130,21 @@ export const UserDialog: React.FC<UserDialogProps> = ({
           ...(values.password ? { password: values.password } : {})
         };
         
-        console.log('Creating new user:', newUser);
-        const createdUser = await createUser(newUser);
-        console.log('User created successfully:', createdUser);
-        
-        if (isMounted.current) {
-          toast.success(`Usuário ${values.name} criado com sucesso`);
-        }
+        await createUser(newUser);
+        toast.success(`Usuário ${values.name} criado com sucesso`);
       }
       
+      // Safely reset form and close dialog
+      form.reset();
+      
+      if (onUserUpdated) {
+        onUserUpdated();
+      }
+      
+      // Close dialog
       if (isMounted.current) {
-        // Use setTimeout to avoid React reconciliation issues
-        setTimeout(() => {
-          if (isMounted.current) {
-            form.reset();
-            
-            if (onUserUpdated) {
-              console.log('Triggering user updated callback');
-              onUserUpdated();
-            }
-            
-            // Close the dialog after a small delay
-            setTimeout(() => {
-              if (isMounted.current) {
-                onOpenChange(false);
-              }
-            }, 100);
-          }
-        }, 100);
+        onOpenChange(false);
+        setIsSubmitting(false);
       }
     } catch (error) {
       console.error('Error saving user:', error);
@@ -177,24 +152,15 @@ export const UserDialog: React.FC<UserDialogProps> = ({
         toast.error(`Erro ao ${isEditing ? 'atualizar' : 'criar'} usuário`);
         setIsSubmitting(false);
       }
-    } finally {
-      if (isMounted.current) {
-        setIsSubmitting(false);
-      }
     }
-  };
+  }, [isEditing, user, onOpenChange, onUserUpdated, form, isSubmitting]);
   
-  const handleCloseDialog = () => {
+  const handleCloseDialog = useCallback(() => {
     if (isMounted.current && !isSubmitting) {
-      // Use timeout to prevent React reconciliation issues
-      setTimeout(() => {
-        if (isMounted.current) {
-          form.reset();
-          onOpenChange(false);
-        }
-      }, 50);
+      form.reset();
+      onOpenChange(false);
     }
-  };
+  }, [form, onOpenChange, isSubmitting]);
   
   return (
     <Dialog open={open} onOpenChange={handleCloseDialog}>
@@ -288,14 +254,7 @@ export const UserDialog: React.FC<UserDialogProps> = ({
                   <FormItem>
                     <FormLabel>Departamento</FormLabel>
                     <Select 
-                      onValueChange={(value) => {
-                        // Use setTimeout to prevent immediate DOM updates
-                        setTimeout(() => {
-                          if (isMounted.current) {
-                            field.onChange(value);
-                          }
-                        }, 10);
-                      }}
+                      onValueChange={field.onChange}
                       defaultValue={field.value}
                       value={field.value}
                     >
@@ -365,4 +324,3 @@ export const UserDialog: React.FC<UserDialogProps> = ({
     </Dialog>
   );
 };
-
