@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/modules/auth';
 
 // Import dashboard components
@@ -19,11 +19,71 @@ import {
   departmentUsage,
   totalStorageUsed,
   totalStorageCapacity,
-  lastSystemCheck
+  lastSystemCheck,
+  getActiveUsersCount
 } from '@/modules/admin/dashboard/data';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const AdminDashboard: React.FC = () => {
   const { user } = useAuth();
+  const [activeUsers, setActiveUsers] = useState<number>(stats[1].count as number);
+  const [updatedStats, setUpdatedStats] = useState(stats);
+  
+  // Buscar usuários ativos ao carregar o componente
+  useEffect(() => {
+    const fetchActiveUsers = async () => {
+      try {
+        const count = await getActiveUsersCount();
+        setActiveUsers(count);
+        
+        // Atualizar a estatística de usuários ativos
+        const newStats = [...stats];
+        newStats[1] = {
+          ...newStats[1],
+          count: count
+        };
+        
+        setUpdatedStats(newStats);
+      } catch (error) {
+        console.error('Erro ao buscar contagem de usuários:', error);
+      }
+    };
+    
+    fetchActiveUsers();
+    
+    // Configurar subscription do Supabase para atualizações em tempo real
+    const usersChannel = supabase
+      .channel('public:users')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'users' }, 
+        async () => {
+          // Quando houver qualquer alteração na tabela users
+          try {
+            const count = await getActiveUsersCount();
+            setActiveUsers(count);
+            
+            // Atualizar a estatística de usuários ativos
+            const newStats = [...stats];
+            newStats[1] = {
+              ...newStats[1],
+              count: count
+            };
+            
+            setUpdatedStats(newStats);
+            toast.info('Dados de usuários atualizados no painel');
+          } catch (error) {
+            console.error('Erro ao atualizar dados em tempo real:', error);
+          }
+        }
+      )
+      .subscribe();
+    
+    return () => {
+      // Cleanup do canal de subscription
+      supabase.removeChannel(usersChannel);
+    };
+  }, []);
   
   if (!user || user.role !== 'admin') return null;
   
@@ -36,7 +96,7 @@ const AdminDashboard: React.FC = () => {
       
       {/* Statistics Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat) => (
+        {updatedStats.map((stat) => (
           <StatCard 
             key={stat.name}
             name={stat.name}

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { 
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -9,8 +9,10 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { User } from '../api/userService';
+} from '@/components/ui/alert-dialog';
+import { User } from '@/modules/admin/users/api/userService';
+import { Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface DeleteUserDialogProps {
   user: User | null;
@@ -23,31 +25,48 @@ export const DeleteUserDialog: React.FC<DeleteUserDialogProps> = ({
   user,
   isDeleting,
   onOpenChange,
-  onConfirmDelete
+  onConfirmDelete,
 }) => {
+  const handleDelete = () => {
+    onConfirmDelete();
+    
+    // Notificar dashboard sobre a remoção do usuário
+    setTimeout(() => {
+      supabase.channel('custom-all-channel')
+        .send({
+          type: 'broadcast',
+          event: 'user-change',
+          payload: { action: 'delete' }
+        });
+    }, 500);
+  };
+
   return (
-    <AlertDialog 
-      open={!!user} 
-      onOpenChange={onOpenChange}
-    >
+    <AlertDialog open={!!user} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Remover usuário</AlertDialogTitle>
+          <AlertDialogTitle>Confirmar remoção</AlertDialogTitle>
           <AlertDialogDescription>
-            Esta ação não pode ser desfeita. Tem certeza que deseja remover o usuário <strong>{user?.name}</strong>?
+            Tem certeza que deseja remover o usuário <strong>{user?.name}</strong>?
+            <br />
+            Esta ação não pode ser desfeita.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
           <AlertDialogAction 
-            onClick={e => {
-              e.preventDefault();
-              onConfirmDelete();
-            }} 
-            className="bg-destructive text-destructive-foreground"
+            onClick={handleDelete}
             disabled={isDeleting}
+            className="bg-destructive hover:bg-destructive/90"
           >
-            {isDeleting ? 'Removendo...' : 'Remover'}
+            {isDeleting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Removendo...
+              </>
+            ) : (
+              'Sim, remover'
+            )}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

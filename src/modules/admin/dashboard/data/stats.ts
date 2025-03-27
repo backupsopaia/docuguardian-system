@@ -1,5 +1,26 @@
 
 import { FileTextIcon, UsersIcon, ShieldAlertIcon, DatabaseIcon } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+
+// Função para obter o número de usuários ativos
+export const getActiveUsersCount = async (): Promise<number> => {
+  try {
+    const { data, error, count } = await supabase
+      .from('users')
+      .select('id', { count: 'exact' })
+      .eq('is_active', true);
+    
+    if (error) {
+      console.error('Erro ao buscar usuários ativos:', error);
+      return 873; // Valor padrão caso ocorra erro
+    }
+    
+    return count || 0;
+  } catch (error) {
+    console.error('Erro inesperado ao buscar usuários:', error);
+    return 873; // Valor padrão caso ocorra erro
+  }
+};
 
 // Statistics
 export const stats = [
@@ -13,7 +34,7 @@ export const stats = [
   },
   { 
     name: 'Active Users', 
-    count: 873, 
+    count: 873, // Este valor será atualizado dinamicamente
     change: '+7%', 
     trend: 'up' as const, 
     icon: UsersIcon, 

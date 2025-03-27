@@ -1,15 +1,25 @@
 
 import React from 'react';
-import { toast } from 'sonner';
-import {
-  Dialog,
-  DialogContent,
-} from '@/components/ui/dialog';
-import { createDepartment, updateDepartment } from '@/modules/admin/departments/api/departmentsService';
-import { Department } from '../../data/departments';
-import { supabase } from '@/integrations/supabase/client';
+import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 import { DepartmentDialogHeader } from './DepartmentDialogHeader';
-import { DepartmentForm, DepartmentFormValues } from './DepartmentForm';
+import { DepartmentForm } from './DepartmentForm';
+import { Department } from '@/modules/admin/users/data/departments';
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { toast } from 'sonner';
+import { createDepartment, updateDepartment } from '@/modules/admin/departments/api/departmentsService';
+import { supabase } from '@/integrations/supabase/client';
+
+// Schema validation
+const formSchema = z.object({
+  name: z.string().min(3, { message: 'Nome deve ter pelo menos 3 caracteres' }),
+  description: z.string().optional(),
+  isActive: z.boolean().default(true),
+});
+
+type FormValues = z.infer<typeof formSchema>;
 
 interface DepartmentDialogProps {
   open: boolean;
@@ -18,95 +28,78 @@ interface DepartmentDialogProps {
   onSuccess?: () => void;
 }
 
-export const DepartmentDialog: React.FC<DepartmentDialogProps> = ({ 
-  open, 
-  onOpenChange, 
+export const DepartmentDialog: React.FC<DepartmentDialogProps> = ({
+  open,
+  onOpenChange,
   department,
-  onSuccess
+  onSuccess,
 }) => {
   const isEditing = !!department;
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
   
-  const handleSubmit = async (values: DepartmentFormValues) => {
-    try {
-      setIsSubmitting(true);
-      console.log("Submitting department with values:", values);
-      
-      if (isEditing && department) {
-        console.log(`Updating department ${department.id} with values:`, values);
-        
-        // Try direct Supabase update first
-        const { data, error } = await supabase
-          .from('departments')
-          .update({
-            name: values.name,
-            description: values.description,
-            is_active: values.isActive
-          })
-          .eq('id', department.id)
-          .select('*');
-          
-        if (error) {
-          console.error('Supabase update error:', error);
-          // Fall back to service function
-          await updateDepartment(department.id, {
-            name: values.name,
-            description: values.description,
-            isActive: values.isActive
-          });
-        } else {
-          console.log('Department updated successfully via Supabase:', data);
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: isEditing
+      ? {
+          name: department.name,
+          description: department.description || '',
+          isActive: department.isActive,
         }
-        
+      : {
+          name: '',
+          description: '',
+          isActive: true,
+        },
+  });
+  
+  React.useEffect(() => {
+    if (open) {
+      form.reset(
+        isEditing
+          ? {
+              name: department?.name || '',
+              description: department?.description || '',
+              isActive: department?.isActive ?? true,
+            }
+          : {
+              name: '',
+              description: '',
+              isActive: true,
+            }
+      );
+    }
+  }, [open, department, isEditing, form]);
+  
+  const handleSubmit = async (values: FormValues) => {
+    try {
+      if (isEditing && department) {
+        await updateDepartment(department.id, values);
         toast.success(`Departamento ${values.name} atualizado com sucesso`);
       } else {
-        console.log('Creating new department with values:', values);
-        
-        // Try direct Supabase insert first
-        const { data, error } = await supabase
-          .from('departments')
-          .insert({
-            name: values.name,
-            description: values.description,
-            is_active: values.isActive,
-            user_count: 0
-          })
-          .select('*');
-          
-        if (error) {
-          console.error('Supabase insert error:', error);
-          // Fall back to service function with required properties
-          await createDepartment({
-            name: values.name,
-            description: values.description,
-            isActive: values.isActive
-          });
-        } else {
-          console.log('Department created successfully via Supabase:', data);
-        }
-        
+        await createDepartment(values);
         toast.success(`Departamento ${values.name} criado com sucesso`);
       }
       
+      // Fechar o diálogo e resetar o formulário
+      form.reset();
+      onOpenChange(false);
+      
+      // Notificar que a operação foi concluída com sucesso
       if (onSuccess) {
         onSuccess();
       }
       
-      onOpenChange(false);
+      // Notificar o painel do administrador sobre a mudança
+      supabase.channel('custom-all-channel')
+        .send({
+          type: 'broadcast',
+          event: 'department-change',
+          payload: { action: isEditing ? 'update' : 'create' }
+        });
+        
     } catch (error) {
-      console.error('Error submitting department:', error);
-      toast.error(
-        isEditing 
-          ? `Erro ao atualizar o departamento` 
-          : `Erro ao criar o departamento`
-      );
-    } finally {
-      setIsSubmitting(false);
+      console.error('Erro ao salvar departamento:', error);
+      toast.error(`Erro ao ${isEditing ? 'atualizar' : 'criar'} departamento`);
     }
-  };
-  
-  const handleCancel = () => {
-    onOpenChange(false);
   };
   
   return (
@@ -114,11 +107,11 @@ export const DepartmentDialog: React.FC<DepartmentDialogProps> = ({
       <DialogContent className="sm:max-w-[525px]">
         <DepartmentDialogHeader department={department} />
         
-        <DepartmentForm
-          department={department}
-          isSubmitting={isSubmitting}
-          onSubmit={handleSubmit}
-          onCancel={handleCancel}
+        <DepartmentForm 
+          form={form} 
+          onSubmit={handleSubmit} 
+          isEditing={isEditing} 
+          onCancel={() => onOpenChange(false)} 
         />
       </DialogContent>
     </Dialog>
