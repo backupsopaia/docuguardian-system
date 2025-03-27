@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/modules/auth';
@@ -16,19 +15,7 @@ import {
   SunIcon,
   MoonIcon,
   LogOut,
-  Workflow,
-  Route,
-  Octagon,
-  Target,
-  Award,
-  Briefcase,
-  Package2,
   Library,
-  Share,
-  Gauge,
-  CheckCheck,
-  KanbanSquare,
-  Box,
   Building2,
   ChevronLeft,
   Menu,
@@ -111,144 +98,6 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, isMobile, toggleSidebar 
           label: "Arquivados",
           to: "/admin/documents/archived",
           active: currentPath === '/admin/documents/archived'
-        }
-      ]
-    },
-    {
-      icon: Workflow,
-      label: "Gestão de Processos BPM",
-      to: "#",
-      active: currentPath.startsWith('/admin/bpm'),
-      submenu: [
-        {
-          label: "Fluxos de Trabalho",
-          to: "/admin/bpm/workflows",
-          active: currentPath === '/admin/bpm/workflows'
-        },
-        {
-          label: "Processos Ativos",
-          to: "/admin/bpm/active",
-          active: currentPath === '/admin/bpm/active'
-        },
-        {
-          label: "Modelagem",
-          to: "/admin/bpm/modeling",
-          active: currentPath === '/admin/bpm/modeling'
-        }
-      ]
-    },
-    {
-      icon: Octagon,
-      label: "Gestão de Riscos (ERM)",
-      to: "#",
-      active: currentPath.startsWith('/admin/risks'),
-      submenu: [
-        {
-          label: "Matriz de Riscos",
-          to: "/admin/risks/matrix",
-          active: currentPath === '/admin/risks/matrix'
-        },
-        {
-          label: "Controles",
-          to: "/admin/risks/controls",
-          active: currentPath === '/admin/risks/controls'
-        },
-        {
-          label: "Incidentes",
-          to: "/admin/risks/incidents",
-          active: currentPath === '/admin/risks/incidents'
-        }
-      ]
-    },
-    {
-      icon: Gauge,
-      label: "Desempenho Corporativo",
-      to: "#",
-      active: currentPath.startsWith('/admin/performance'),
-      submenu: [
-        {
-          label: "KPIs",
-          to: "/admin/performance/kpis",
-          active: currentPath === '/admin/performance/kpis'
-        },
-        {
-          label: "Metas",
-          to: "/admin/performance/goals",
-          active: currentPath === '/admin/performance/goals'
-        },
-        {
-          label: "Dashboards",
-          to: "/admin/performance/dashboards",
-          active: currentPath === '/admin/performance/dashboards'
-        }
-      ]
-    },
-    {
-      icon: CheckCheck,
-      label: "Qualidade (EQM)",
-      to: "#",
-      active: currentPath.startsWith('/admin/quality'),
-      submenu: [
-        {
-          label: "Normas",
-          to: "/admin/quality/standards",
-          active: currentPath === '/admin/quality/standards'
-        },
-        {
-          label: "Auditorias",
-          to: "/admin/quality/audits",
-          active: currentPath === '/admin/quality/audits'
-        },
-        {
-          label: "Não Conformidades",
-          to: "/admin/quality/nonconformities",
-          active: currentPath === '/admin/quality/nonconformities'
-        }
-      ]
-    },
-    {
-      icon: Briefcase,
-      label: "Projetos e Portfólios",
-      to: "#",
-      active: currentPath.startsWith('/admin/projects'),
-      submenu: [
-        {
-          label: "Projetos",
-          to: "/admin/projects/list",
-          active: currentPath === '/admin/projects/list'
-        },
-        {
-          label: "Portfólios",
-          to: "/admin/projects/portfolios",
-          active: currentPath === '/admin/projects/portfolios'
-        },
-        {
-          label: "Recursos",
-          to: "/admin/projects/resources",
-          active: currentPath === '/admin/projects/resources'
-        }
-      ]
-    },
-    {
-      icon: Box,
-      label: "Ativos (EAM)",
-      to: "#",
-      active: currentPath.startsWith('/admin/assets'),
-      submenu: [
-        {
-          label: "Inventário",
-          to: "/admin/assets/inventory",
-          active: currentPath === '/admin/assets/inventory'
-        },
-        {
-          label: "Manutenção",
-          to: "/admin/assets/maintenance",
-          active: currentPath === '/admin/assets/maintenance'
-        },
-        {
-          label: "Ciclo de Vida",
-          to: "/admin/assets/lifecycle",
-          active: currentPath === '/admin/assets/lifecycle'
         }
       ]
     },
