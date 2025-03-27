@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { mockUsers } from '../data/users';
-import { apiFetchWithFallback as apiFetch } from '@/lib/apiService';
+import { apiFetchWithFallback } from '@/lib/apiService';
 
 interface User {
   id: string;
@@ -117,7 +117,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       // In a real implementation, this would call the refresh token endpoint
       // For now, we'll use our API utility with mock data
-      const response = await apiFetch<{ token: string, expiry: number }>('/auth/refresh', {
+      const response = await apiFetchWithFallback<{ token: string, expiry: number }>('/auth/refresh', {
         method: 'POST',
         body: JSON.stringify({ userId: user.id }),
       }, authState.token);
@@ -169,7 +169,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       // Try to use the API first, fall back to mock data
       try {
-        const response = await apiFetch<{
+        const response = await apiFetchWithFallback<{
           user: User,
           token: string,
           expiry: number
@@ -263,7 +263,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Try to call logout API if the user is authenticated
     if (authState.token) {
       try {
-        await apiFetch('/auth/logout', {
+        await apiFetchWithFallback('/auth/logout', {
           method: 'POST'
         }, authState.token);
       } catch (error) {
