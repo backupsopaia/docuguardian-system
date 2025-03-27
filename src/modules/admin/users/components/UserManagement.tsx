@@ -15,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { UsersList } from './UsersList';
 import { DepartmentList } from './DepartmentList';
-import { UserDialog } from './UserDialog';
+import { UserDialog } from './user-dialog';
 import { DepartmentDialog } from './department';
 import { AccessRestrictionsDialog } from './AccessRestrictionsDialog';
 import { getDepartments } from '@/modules/admin/departments/api/departmentsService';
