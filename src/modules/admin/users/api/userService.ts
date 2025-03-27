@@ -93,13 +93,13 @@ export const createUser = async (userData: Omit<User, 'id'>): Promise<User> => {
 export const updateUser = async (id: string, userData: Partial<User>): Promise<User> => {
   try {
     // Transform frontend format to database format
-    const dbUser = {
-      name: userData.name,
-      email: userData.email,
-      role: userData.role,
-      department: userData.department,
-      is_active: userData.isActive
-    };
+    const dbUser: Record<string, any> = {};
+    
+    if (userData.name !== undefined) dbUser.name = userData.name;
+    if (userData.email !== undefined) dbUser.email = userData.email;
+    if (userData.role !== undefined) dbUser.role = userData.role;
+    if (userData.department !== undefined) dbUser.department = userData.department;
+    if (userData.isActive !== undefined) dbUser.is_active = userData.isActive;
     
     const { data, error } = await fromTable('users')
       .update(dbUser)

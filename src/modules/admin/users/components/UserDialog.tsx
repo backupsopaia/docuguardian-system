@@ -75,10 +75,19 @@ export const UserDialog: React.FC<UserDialogProps> = ({ open, onOpenChange, user
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       if (isEditing && user) {
+        // For updates, we can pass partial data
         await updateUser(user.id, values);
         toast.success(`Usuário ${values.name} atualizado com sucesso`);
       } else {
-        await createUser(values);
+        // For creation, ensure all required fields are present
+        const newUser: Omit<User, 'id'> = {
+          name: values.name,
+          email: values.email,
+          role: values.role,
+          department: values.department,
+          isActive: values.isActive
+        };
+        await createUser(newUser);
         toast.success(`Usuário ${values.name} criado com sucesso`);
       }
       
