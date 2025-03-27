@@ -10,7 +10,7 @@ import { format } from 'date-fns';
 import { CalendarIcon, ChevronDown, Download, FileText, PieChart, BarChart, Table } from 'lucide-react';
 import { Table as UITable, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { getDocumentReports, exportReport, ExportRequest } from '@/modules/admin/documents/api/reportsService';
+import { getDocumentReports, exportReport, ExportRequest, ReportParams } from '@/modules/admin/documents/api/reportsService';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart as RechartsPieChart, Pie, Cell } from 'recharts';
 
@@ -84,7 +84,7 @@ const ReportsPage = () => {
     try {
       setIsLoading(true);
       // Format dates for API call if they exist
-      const params = {
+      const params: ReportParams = {
         startDate: filter.startDate ? format(filter.startDate, 'yyyy-MM-dd') : undefined,
         endDate: filter.endDate ? format(filter.endDate, 'yyyy-MM-dd') : undefined,
         status: filter.status !== 'all' ? filter.status : undefined,
@@ -110,14 +110,14 @@ const ReportsPage = () => {
     }
   };
   
-  const handleExport = async (format: 'pdf' | 'excel') => {
+  const handleExport = async (formatType: 'pdf' | 'excel') => {
     if (!reportData) return;
     
     try {
       setIsLoading(true);
       
       const exportRequest: ExportRequest = {
-        format: format,  // Fixed: Use format as a property, not as a function
+        format: formatType,
         data: reportData,
         filters: {
           startDate: filter.startDate ? format(filter.startDate, 'yyyy-MM-dd') : undefined,
@@ -128,17 +128,16 @@ const ReportsPage = () => {
         }
       };
       
-      // Call exportReport as a function with request object parameter
       const result = await exportReport(exportRequest);
       
       toast({
         title: "Exportação iniciada",
-        description: `O relatório está sendo exportado para ${format.toUpperCase()}`,
+        description: `O relatório está sendo exportado para ${formatType.toUpperCase()}`,
       });
     } catch (error) {
       toast({
         title: "Erro na exportação",
-        description: `Não foi possível exportar para ${format.toUpperCase()}`,
+        description: `Não foi possível exportar para ${formatType.toUpperCase()}`,
         variant: "destructive"
       });
     } finally {

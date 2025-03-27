@@ -1,3 +1,4 @@
+
 import { Document } from '@/components/admin/documents/DocumentsTable';
 import { getDocuments } from './documentsService';
 
@@ -94,7 +95,7 @@ const generateSummaryByField = (documents: Document[], field: keyof Document) =>
   }));
 };
 
-// Export report to PDF or Excel - Updated to fix the type error
+// Export report to PDF or Excel
 export const exportReport = async (request: ExportRequest): Promise<{ success: boolean; downloadUrl: string }> => {
   // Simulate API delay
   await new Promise(resolve => setTimeout(resolve, 1500));
