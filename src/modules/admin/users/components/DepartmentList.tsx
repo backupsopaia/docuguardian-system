@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { FileEdit, Trash2, Users, FolderOpen, ClipboardList, ShieldAlert } from 'lucide-react';
+import { FileEdit, Trash2, Users, FolderOpen, ClipboardList, ShieldAlert, FileText } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,34 +30,71 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { departments } from '@/modules/admin/users/data/departments';
+import { Department } from '../data/departments';
+import { deleteDepartment } from '@/modules/admin/departments/api/departmentsService';
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface DepartmentListProps {
-  onEdit: (department: any) => void;
-  onManageUsers?: (department: any) => void;
-  onManageFolders?: (department: any) => void;
-  onManageTasks?: (department: any) => void;
-  onManageRestrictions?: (department: any) => void;
+  departments: Department[];
+  isLoading?: boolean;
+  onEdit: (department: Department) => void;
+  onManageUsers?: (department: Department) => void;
+  onManageFolders?: (department: Department) => void;
+  onManageTasks?: (department: Department) => void;
+  onManageRestrictions?: (department: Department) => void;
+  onManageDocuments?: (department: Department) => void;
+  onDepartmentUpdated?: () => void;
 }
 
 export const DepartmentList: React.FC<DepartmentListProps> = ({ 
+  departments,
+  isLoading = false,
   onEdit, 
   onManageUsers,
   onManageFolders,
   onManageTasks,
-  onManageRestrictions
+  onManageRestrictions,
+  onManageDocuments,
+  onDepartmentUpdated
 }) => {
-  const [depts, setDepts] = useState(departments);
-  const [deptToDelete, setDeptToDelete] = useState<any | null>(null);
+  const [deptToDelete, setDeptToDelete] = useState<Department | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!deptToDelete) return;
     
-    // In a real app, you would make an API call here
-    setDepts(depts.filter(dept => dept.id !== deptToDelete.id));
-    toast.success(`Departamento ${deptToDelete.name} removido com sucesso`);
-    setDeptToDelete(null);
+    try {
+      setIsDeleting(true);
+      await deleteDepartment(deptToDelete.id);
+      toast.success(`Departamento ${deptToDelete.name} removido com sucesso`);
+      if (onDepartmentUpdated) onDepartmentUpdated();
+    } catch (error) {
+      toast.error('Erro ao remover departamento');
+    } finally {
+      setIsDeleting(false);
+      setDeptToDelete(null);
+    }
   };
+  
+  if (isLoading) {
+    return (
+      <div className="space-y-3">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="flex items-center space-x-4">
+            <Skeleton className="h-12 w-full" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+  
+  if (departments.length === 0) {
+    return (
+      <div className="text-center py-8 border rounded-md">
+        <p className="text-muted-foreground">Nenhum departamento encontrado</p>
+      </div>
+    );
+  }
   
   return (
     <>
@@ -73,7 +110,7 @@ export const DepartmentList: React.FC<DepartmentListProps> = ({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {depts.map(dept => (
+            {departments.map(dept => (
               <TableRow key={dept.id}>
                 <TableCell className="font-medium">{dept.name}</TableCell>
                 <TableCell>{dept.description}</TableCell>
@@ -104,10 +141,16 @@ export const DepartmentList: React.FC<DepartmentListProps> = ({
                           Gerenciar Usuários
                         </DropdownMenuItem>
                       )}
+                      {onManageDocuments && (
+                        <DropdownMenuItem onClick={() => onManageDocuments(dept)}>
+                          <FileText className="mr-2 h-4 w-4" />
+                          Gerenciar Documentos
+                        </DropdownMenuItem>
+                      )}
                       {onManageFolders && (
                         <DropdownMenuItem onClick={() => onManageFolders(dept)}>
                           <FolderOpen className="mr-2 h-4 w-4" />
-                          Pastas e Documentos
+                          Pastas e Permissões
                         </DropdownMenuItem>
                       )}
                       {onManageTasks && (
@@ -148,9 +191,13 @@ export const DepartmentList: React.FC<DepartmentListProps> = ({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
-              Remover
+            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDelete} 
+              className="bg-destructive text-destructive-foreground"
+              disabled={isDeleting}
+            >
+              {isDeleting ? 'Removendo...' : 'Remover'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

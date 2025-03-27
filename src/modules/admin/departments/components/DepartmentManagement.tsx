@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Plus, 
   FileEdit,
@@ -19,6 +19,10 @@ import { DepartmentUsersDialog } from './DepartmentUsersDialog';
 import { DepartmentFoldersDialog } from './DepartmentFoldersDialog';
 import { DepartmentRestrictionsDialog } from './DepartmentRestrictionsDialog';
 import { DepartmentTasksDialog } from './DepartmentTasksDialog';
+import { DepartmentDocumentsDialog } from './DepartmentDocumentsDialog';
+import { useToast } from '@/components/ui/use-toast';
+import { getDepartments } from '../api/departmentsService';
+import { Department } from '@/modules/admin/users/data/departments';
 
 const DepartmentManagement: React.FC = () => {
   const [departmentDialogOpen, setDepartmentDialogOpen] = useState(false);
@@ -26,36 +30,69 @@ const DepartmentManagement: React.FC = () => {
   const [foldersDialogOpen, setFoldersDialogOpen] = useState(false);
   const [tasksDialogOpen, setTasksDialogOpen] = useState(false);
   const [restrictionsDialogOpen, setRestrictionsDialogOpen] = useState(false);
-  const [editingDepartment, setEditingDepartment] = useState<any>(null);
+  const [documentsDialogOpen, setDocumentsDialogOpen] = useState(false);
+  const [editingDepartment, setEditingDepartment] = useState<Department | null>(null);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
+  
+  useEffect(() => {
+    loadDepartments();
+  }, []);
+  
+  const loadDepartments = async () => {
+    try {
+      setIsLoading(true);
+      const depts = await getDepartments();
+      setDepartments(depts);
+    } catch (error) {
+      toast({
+        title: "Erro ao carregar departamentos",
+        description: "Não foi possível carregar a lista de departamentos.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
   
   const handleAddDepartment = () => {
     setEditingDepartment(null);
     setDepartmentDialogOpen(true);
   };
   
-  const handleEditDepartment = (department: any) => {
+  const handleEditDepartment = (department: Department) => {
     setEditingDepartment(department);
     setDepartmentDialogOpen(true);
   };
 
-  const handleManageUsers = (department: any) => {
+  const handleManageUsers = (department: Department) => {
     setEditingDepartment(department);
     setUsersDialogOpen(true);
   };
 
-  const handleManageFolders = (department: any) => {
+  const handleManageFolders = (department: Department) => {
     setEditingDepartment(department);
     setFoldersDialogOpen(true);
   };
 
-  const handleManageTasks = (department: any) => {
+  const handleManageTasks = (department: Department) => {
     setEditingDepartment(department);
     setTasksDialogOpen(true);
   };
 
-  const handleManageRestrictions = (department: any) => {
+  const handleManageRestrictions = (department: Department) => {
     setEditingDepartment(department);
     setRestrictionsDialogOpen(true);
+  };
+  
+  const handleManageDocuments = (department: Department) => {
+    setEditingDepartment(department);
+    setDocumentsDialogOpen(true);
+  };
+  
+  const handleDepartmentUpdated = () => {
+    loadDepartments();
   };
   
   return (
@@ -80,11 +117,15 @@ const DepartmentManagement: React.FC = () => {
         </CardHeader>
         <CardContent>
           <DepartmentList 
+            departments={departments}
+            isLoading={isLoading}
             onEdit={handleEditDepartment}
             onManageUsers={handleManageUsers}
             onManageFolders={handleManageFolders}
             onManageTasks={handleManageTasks}
             onManageRestrictions={handleManageRestrictions}
+            onManageDocuments={handleManageDocuments}
+            onDepartmentUpdated={handleDepartmentUpdated}
           />
         </CardContent>
       </Card>
@@ -93,6 +134,7 @@ const DepartmentManagement: React.FC = () => {
         open={departmentDialogOpen}
         onOpenChange={setDepartmentDialogOpen}
         department={editingDepartment}
+        onSuccess={handleDepartmentUpdated}
       />
       
       <DepartmentUsersDialog
@@ -116,6 +158,12 @@ const DepartmentManagement: React.FC = () => {
       <DepartmentRestrictionsDialog
         open={restrictionsDialogOpen}
         onOpenChange={setRestrictionsDialogOpen}
+        department={editingDepartment}
+      />
+      
+      <DepartmentDocumentsDialog
+        open={documentsDialogOpen}
+        onOpenChange={setDocumentsDialogOpen}
         department={editingDepartment}
       />
     </div>
