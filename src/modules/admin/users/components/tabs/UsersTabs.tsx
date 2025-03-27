@@ -33,19 +33,19 @@ export const UsersTabs: React.FC<UsersTabsProps> = ({
   handleDepartmentUpdated
 }) => {
   return (
-    <Tabs defaultValue="users" value={activeTab} onValueChange={setActiveTab}>
-      <TabsList className="grid w-full md:w-auto grid-cols-2">
-        <TabsTrigger value="users">
+    <Tabs defaultValue="users" value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <TabsList className="grid w-full max-w-xs mx-auto grid-cols-2 mb-4">
+        <TabsTrigger value="users" className="flex items-center justify-center">
           <Users className="mr-2 h-4 w-4" />
-          Usuários
+          <span className="hidden xs:inline">Usuários</span>
         </TabsTrigger>
-        <TabsTrigger value="departments">
+        <TabsTrigger value="departments" className="flex items-center justify-center">
           <Building2 className="mr-2 h-4 w-4" />
-          Departamentos
+          <span className="hidden xs:inline">Departamentos</span>
         </TabsTrigger>
       </TabsList>
       
-      <TabsContent value="users" className="mt-6">
+      <TabsContent value="users" className="mt-4 sm:mt-6">
         <UsersTabContent 
           onAddUser={handleAddUser}
           onEditUser={handleEditUser}
@@ -54,7 +54,7 @@ export const UsersTabs: React.FC<UsersTabsProps> = ({
         />
       </TabsContent>
       
-      <TabsContent value="departments" className="mt-6">
+      <TabsContent value="departments" className="mt-4 sm:mt-6">
         <DepartmentsTabContent 
           departments={departments}
           isLoading={isLoading}

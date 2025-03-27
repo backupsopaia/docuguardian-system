@@ -139,7 +139,7 @@ export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions, ref
   
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center p-8">
+      <div className="flex justify-center items-center p-4 sm:p-8">
         <p className="text-muted-foreground">Carregando usuários...</p>
       </div>
     );
@@ -147,7 +147,7 @@ export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions, ref
   
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center p-8 gap-4">
+      <div className="flex flex-col items-center justify-center p-4 sm:p-8 gap-4">
         <p className="text-destructive">{error}</p>
         <Button onClick={() => setLoadAttempt(prev => prev + 1)} variant="outline">
           Tentar novamente
@@ -157,7 +157,7 @@ export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions, ref
   }
   
   return (
-    <>
+    <div className="w-full overflow-hidden">
       <UsersTable 
         users={users}
         onEdit={onEdit}
@@ -173,6 +173,6 @@ export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions, ref
           onConfirmDelete={handleConfirmDelete}
         />
       )}
-    </>
+    </div>
   );
 };

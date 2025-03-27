@@ -41,7 +41,7 @@ export const DeleteUserDialog: React.FC<DeleteUserDialogProps> = ({
 
   return (
     <AlertDialog open={true} onOpenChange={handleOpenChange}>
-      <AlertDialogContent>
+      <AlertDialogContent className="w-[95%] max-w-md mx-auto">
         <AlertDialogHeader>
           <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
           <AlertDialogDescription>
@@ -49,8 +49,8 @@ export const DeleteUserDialog: React.FC<DeleteUserDialogProps> = ({
             Esta ação não pode ser desfeita.
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+        <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+          <AlertDialogCancel disabled={isDeleting} className="mt-0">Cancelar</AlertDialogCancel>
           <AlertDialogAction 
             onClick={handleConfirmDelete}
             className="bg-destructive hover:bg-destructive/90"

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { UsersList } from '../UsersList';
@@ -16,14 +17,14 @@ export const UsersTabContent: React.FC<UsersTabContentProps> = ({
   refreshTrigger
 }) => {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Usuários do Sistema</CardTitle>
-        <CardDescription>
+    <Card className="overflow-hidden">
+      <CardHeader className="p-4 sm:p-6">
+        <CardTitle className="text-lg sm:text-xl">Usuários do Sistema</CardTitle>
+        <CardDescription className="text-sm">
           Gerencie os usuários, defina permissões e configure restrições de acesso
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-3 sm:p-6 pt-0 sm:pt-0">
         <UsersList 
           onEdit={onEditUser} 
           onPermissions={onOpenRestrictions}

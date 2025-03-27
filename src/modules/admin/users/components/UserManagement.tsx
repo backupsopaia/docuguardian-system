@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { UserManagementHeader } from './UserManagementHeader';
 import { UsersTabs } from './tabs/UsersTabs';
@@ -70,7 +71,7 @@ const UserManagement: React.FC = () => {
   };
   
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 px-2 sm:px-0">
       <UserManagementHeader 
         activeTab={activeTab}
         onAddUser={handleAddUser}

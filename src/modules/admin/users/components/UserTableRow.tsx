@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -11,28 +12,39 @@ interface UserTableRowProps {
   onDelete: (user: User) => void;
 }
 
-export const UserTableRow: React.FC<UserTableRowProps> = ({
-  user,
-  onEdit,
-  onPermissions,
-  onDelete
+export const UserTableRow: React.FC<UserTableRowProps> = ({ 
+  user, 
+  onEdit, 
+  onPermissions, 
+  onDelete 
 }) => {
   return (
-    <TableRow key={user.id}>
-      <TableCell className="font-medium">{user.name}</TableCell>
-      <TableCell>{user.email}</TableCell>
-      <TableCell>{user.department}</TableCell>
-      <TableCell>
-        <Badge variant={user.role === 'admin' ? "destructive" : "outline"}>
-          {user.role === 'admin' ? 'Administrador' : 'Usuário'}
-        </Badge>
+    <TableRow>
+      <TableCell className="font-medium">
+        <div>
+          {user.name}
+          <div className="sm:hidden text-xs text-muted-foreground mt-1 truncate max-w-[200px]">
+            {user.email}
+          </div>
+          <div className="sm:hidden text-xs text-muted-foreground mt-1">
+            {user.role === 'admin' ? 'Administrador' : 'Usuário'}
+          </div>
+        </div>
+      </TableCell>
+      <TableCell className="hidden sm:table-cell">{user.email}</TableCell>
+      <TableCell className="hidden md:table-cell">{user.department}</TableCell>
+      <TableCell className="hidden sm:table-cell">
+        {user.role === 'admin' ? 'Administrador' : 'Usuário'}
       </TableCell>
       <TableCell>
-        <Badge variant={user.isActive ? "default" : "secondary"} className={user.isActive ? "bg-green-600 hover:bg-green-700" : ""}>
+        <Badge 
+          variant={user.isActive ? "success" : "destructive"}
+          className="whitespace-nowrap"
+        >
           {user.isActive ? 'Ativo' : 'Inativo'}
         </Badge>
       </TableCell>
-      <TableCell>
+      <TableCell className="text-right">
         <UserActionsDropdown 
           user={user}
           onEdit={onEdit}

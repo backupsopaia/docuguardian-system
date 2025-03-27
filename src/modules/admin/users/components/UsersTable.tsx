@@ -25,16 +25,16 @@ export const UsersTable: React.FC<UsersTableProps> = ({
   onDelete
 }) => {
   return (
-    <div className="rounded-md border">
+    <div className="rounded-md border overflow-x-auto">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Nome</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Departamento</TableHead>
-            <TableHead>Função</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="w-[100px]">Ações</TableHead>
+            <TableHead className="min-w-[120px]">Nome</TableHead>
+            <TableHead className="min-w-[180px] hidden sm:table-cell">Email</TableHead>
+            <TableHead className="min-w-[140px] hidden md:table-cell">Departamento</TableHead>
+            <TableHead className="min-w-[100px] hidden sm:table-cell">Função</TableHead>
+            <TableHead className="w-[90px]">Status</TableHead>
+            <TableHead className="w-[100px] text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
