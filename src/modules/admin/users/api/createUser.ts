@@ -1,14 +1,14 @@
 
-import { fromTable } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 import { User, UserResponse } from './types';
 import { mapDbUserToFrontend } from './userServiceUtils';
 
-// Create a new user with non-blocking operations
+// Create a new user with improved Supabase integration
 export const createUser = async (userData: Omit<User, 'id'>): Promise<User> => {
   try {
     console.log('Creating user in database:', userData);
     
-    // Transform frontend format to database format in a non-blocking way
+    // Transform frontend format to database format
     const dbUser = {
       name: userData.name,
       email: userData.email,
@@ -17,11 +17,15 @@ export const createUser = async (userData: Omit<User, 'id'>): Promise<User> => {
       is_active: userData.isActive
     };
     
-    const { data, error } = await fromTable('users').insert(dbUser).select();
+    // Insert directly to Supabase with better error handling
+    const { data, error } = await supabase
+      .from('users')
+      .insert(dbUser)
+      .select();
     
     if (error) {
-      console.error('Error creating user:', error);
-      throw new Error(error.message);
+      console.error('Error creating user in Supabase:', error);
+      throw new Error(`Failed to create user: ${error.message}`);
     }
     
     // Handle case where data is null or not an array

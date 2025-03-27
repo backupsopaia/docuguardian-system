@@ -18,42 +18,58 @@ export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions, ref
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loadAttempt, setLoadAttempt] = useState(0); // Track loading attempts
   
-  // Optimized data loading function that doesn't block the UI
+  // Optimized data loading function with retry mechanism
   const loadUsers = useCallback(async () => {
-    if (!isLoading) {
-      setIsLoading(true);
-    }
+    setIsLoading(true);
     setError(null);
     
     try {
-      console.log('Loading users...');
+      console.log('Loading users... (attempt ' + (loadAttempt + 1) + ')');
       const fetchedUsers = await getUsers();
       
-      // Ensure we're working with an array before setting state
+      // Verify the response is an array
       if (Array.isArray(fetchedUsers)) {
         console.log(`Successfully loaded ${fetchedUsers.length} users`);
         setUsers(fetchedUsers);
+        
+        // If we got an empty array but this isn't our first attempt, show a message
+        if (fetchedUsers.length === 0 && loadAttempt > 0) {
+          toast.info('Nenhum usuário encontrado no sistema');
+        }
       } else {
         console.error('Expected users to be an array but got:', typeof fetchedUsers);
         setUsers([]);
-        setError('Failed to load users: Invalid data format');
+        setError('Falha ao carregar usuários: formato inválido');
         toast.error('Falha ao carregar usuários: formato inválido');
       }
     } catch (error) {
       console.error('Failed to load users:', error);
       setUsers([]);
-      setError('Failed to load users');
+      setError('Falha ao carregar usuários');
       toast.error('Falha ao carregar usuários');
     } finally {
       setIsLoading(false);
     }
-  }, [isLoading]);
+  }, [loadAttempt]);
   
+  // Retry loading if previous attempt failed
   useEffect(() => {
-    console.log('UsersList effect triggered, refreshTrigger:', refreshTrigger);
+    if (error) {
+      const timer = setTimeout(() => {
+        setLoadAttempt(prev => prev + 1);
+      }, 5000); // Retry after 5 seconds if there was an error
+      
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
+  
+  // Load users when component mounts or refreshTrigger changes
+  useEffect(() => {
+    console.log('UsersList effect triggered, refreshTrigger:', refreshTrigger, 'loadAttempt:', loadAttempt);
     loadUsers();
-  }, [loadUsers, refreshTrigger]);
+  }, [loadUsers, refreshTrigger, loadAttempt]);
   
   // Handle deletion confirmation
   const handleConfirmDelete = () => {
@@ -99,12 +115,12 @@ export const UsersList: React.FC<UsersListProps> = ({ onEdit, onPermissions, ref
     );
   }
   
-  // Error state
+  // Error state with retry button
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center p-8 gap-4">
         <p className="text-destructive">{error}</p>
-        <Button onClick={loadUsers} variant="outline">
+        <Button onClick={() => setLoadAttempt(prev => prev + 1)} variant="outline">
           Tentar novamente
         </Button>
       </div>
