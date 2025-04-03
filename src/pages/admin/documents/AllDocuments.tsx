@@ -1,139 +1,320 @@
 
 import React, { useState, useEffect } from 'react';
-import { useToast } from '@/components/ui/use-toast';
+import DocumentsTable, { Document } from '@/components/admin/documents/DocumentsTable';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import DocumentsTable from '@/components/admin/documents/DocumentsTable';
-import { getDocuments, archiveDocument } from '@/modules/admin/documents/api/documentsService';
-import { Search, FileUp, Filter } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Loader2, Plus, Upload, Filter } from 'lucide-react';
+import { 
+  getDocuments, 
+  getDocumentCategories, 
+  getClients,
+  approveDocument,
+  rejectDocument,
+  archiveDocument,
+  restoreDocument,
+  deleteDocument,
+} from '@/modules/admin/documents/api/documentsApiService';
+import { useAuth } from '@/modules/auth';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import DocumentUploadForm from '@/modules/admin/documents/components/DocumentUploadForm';
+import DocumentFilters from '@/modules/admin/documents/components/DocumentFilters';
+import { DocumentCategory, Client, DocumentSearchFilters } from '@/modules/admin/documents/types/documents';
+import { toast } from 'sonner';
 
-const AllDocuments = () => {
-  const [documents, setDocuments] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const { toast } = useToast();
+const AllDocuments: React.FC = () => {
+  const [documents, setDocuments] = useState<Document[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [currentTab, setCurrentTab] = useState<'all' | 'active' | 'archived'>('all');
+  const [uploaderOpen, setUploaderOpen] = useState(false);
+  const [filtersVisible, setFiltersVisible] = useState(false);
+  const [categories, setCategories] = useState<DocumentCategory[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [filters, setFilters] = useState<DocumentSearchFilters>({});
   
-  useEffect(() => {
-    loadDocuments();
-  }, []);
+  const { isAuthenticated } = useAuth();
   
+  // Carregar documentos
   const loadDocuments = async () => {
     try {
-      setIsLoading(true);
-      const docs = await getDocuments();
-      setDocuments(docs);
+      setLoading(true);
+      
+      // Filtros baseados na tab atual
+      const statusFilters = currentTab === 'all' 
+        ? undefined 
+        : currentTab === 'active' 
+          ? { status: ['draft', 'pending', 'approved'] }
+          : { status: ['archived'] };
+      
+      // Combinar filtros de status com outros filtros
+      const combinedFilters = {
+        ...filters,
+        ...statusFilters
+      };
+      
+      const result = await getDocuments(combinedFilters);
+      setDocuments(result.documents);
     } catch (error) {
-      toast({
-        title: "Erro ao carregar documentos",
-        description: "Não foi possível carregar a lista de documentos.",
-        variant: "destructive"
-      });
+      console.error('Erro ao carregar documentos:', error);
+      toast.error('Falha ao carregar documentos. Por favor, tente novamente.');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
   
-  const handleArchive = async (id: string) => {
+  // Carregar categorias e clientes
+  const loadCategoriesAndClients = async () => {
     try {
-      await archiveDocument(id);
-      toast({
-        title: "Documento arquivado",
-        description: "O documento foi arquivado com sucesso.",
-      });
+      const [categoriesData, clientsData] = await Promise.all([
+        getDocumentCategories(),
+        getClients()
+      ]);
+      
+      setCategories(categoriesData);
+      setClients(clientsData);
+    } catch (error) {
+      console.error('Erro ao carregar dados complementares:', error);
+    }
+  };
+  
+  // Efeito para carregar dados iniciais
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadCategoriesAndClients();
+      loadDocuments();
+    }
+  }, [isAuthenticated, currentTab, filters]);
+  
+  // Handler para aprovação de documento
+  const handleApproveDocument = async (id: string) => {
+    try {
+      await approveDocument(id);
+      toast.success('Documento aprovado com sucesso!');
       loadDocuments();
     } catch (error) {
-      toast({
-        title: "Erro ao arquivar",
-        description: "Não foi possível arquivar o documento.",
-        variant: "destructive"
-      });
+      console.error('Erro ao aprovar documento:', error);
+      toast.error('Falha ao aprovar documento.');
     }
   };
   
-  const handleView = (id: string) => {
-    toast({
-      title: "Visualizar documento",
-      description: `Visualizando documento ID: ${id}`,
-    });
+  // Handler para rejeição de documento
+  const handleRejectDocument = async (id: string) => {
+    try {
+      await rejectDocument(id);
+      toast.success('Documento rejeitado.');
+      loadDocuments();
+    } catch (error) {
+      console.error('Erro ao rejeitar documento:', error);
+      toast.error('Falha ao rejeitar documento.');
+    }
   };
   
-  const handleEdit = (id: string) => {
-    toast({
-      title: "Editar documento",
-      description: `Editando documento ID: ${id}`,
-    });
+  // Handler para arquivamento de documento
+  const handleArchiveDocument = async (id: string) => {
+    try {
+      await archiveDocument(id);
+      toast.success('Documento arquivado com sucesso!');
+      loadDocuments();
+    } catch (error) {
+      console.error('Erro ao arquivar documento:', error);
+      toast.error('Falha ao arquivar documento.');
+    }
   };
   
-  const handleShare = (id: string) => {
-    toast({
-      title: "Compartilhar documento",
-      description: `Compartilhando documento ID: ${id}`,
-    });
+  // Handler para restauração de documento
+  const handleRestoreDocument = async (id: string) => {
+    try {
+      await restoreDocument(id);
+      toast.success('Documento restaurado com sucesso!');
+      loadDocuments();
+    } catch (error) {
+      console.error('Erro ao restaurar documento:', error);
+      toast.error('Falha ao restaurar documento.');
+    }
   };
   
-  const handleDownload = (id: string) => {
-    toast({
-      title: "Download iniciado",
-      description: `Fazendo download do documento ID: ${id}`,
-    });
+  // Handler para exclusão de documento
+  const handleDeleteDocument = async (id: string) => {
+    try {
+      await deleteDocument(id);
+      toast.success('Documento excluído permanentemente.');
+      loadDocuments();
+    } catch (error) {
+      console.error('Erro ao excluir documento:', error);
+      toast.error('Falha ao excluir documento.');
+    }
   };
   
-  const filteredDocuments = documents.filter(doc => 
-    doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    doc.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    doc.department.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Handler para visualização de documento
+  const handleViewDocument = (id: string) => {
+    // Implementar abertura de documento em visualizador
+    toast.info(`Visualizando documento ${id}`);
+  };
   
+  // Handler para edição de documento
+  const handleEditDocument = (id: string) => {
+    // Implementar edição de documento
+    toast.info(`Editando documento ${id}`);
+  };
+  
+  // Handler para compartilhamento de documento
+  const handleShareDocument = (id: string) => {
+    // Implementar compartilhamento de documento
+    toast.info(`Compartilhando documento ${id}`);
+  };
+  
+  // Handler para download de documento
+  const handleDownloadDocument = (id: string) => {
+    // Implementar download de documento
+    toast.info(`Baixando documento ${id}`);
+  };
+  
+  // Handler para mudança de filtros
+  const handleFilterChange = (newFilters: DocumentSearchFilters) => {
+    setFilters(newFilters);
+  };
+  
+  // Handler para conclusão de upload
+  const handleUploadComplete = () => {
+    setUploaderOpen(false);
+    loadDocuments();
+  };
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Todos os Documentos</h1>
-        <p className="text-muted-foreground">
-          Visualize e gerencie todos os documentos do sistema.
-        </p>
+    <div className="space-y-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
+        <div>
+          <h1 className="text-2xl font-semibold">Documentos</h1>
+          <p className="text-muted-foreground">Gerencie todos os documentos da organização</p>
+        </div>
+        <div className="flex items-center space-x-2 w-full sm:w-auto">
+          <Button 
+            onClick={() => setFiltersVisible(!filtersVisible)}
+            variant="outline"
+            className="w-full sm:w-auto"
+          >
+            <Filter className="h-4 w-4 mr-2" />
+            {filtersVisible ? "Ocultar filtros" : "Mostrar filtros"}
+          </Button>
+          <Button 
+            onClick={() => setUploaderOpen(true)}
+            className="w-full sm:w-auto"
+          >
+            <Upload className="h-4 w-4 mr-2" />
+            Novo documento
+          </Button>
+        </div>
       </div>
       
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <CardTitle>Documentos</CardTitle>
-              <CardDescription>
-                Gerencie todos os documentos disponíveis no sistema
-              </CardDescription>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-2">
-              <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Buscar documentos..."
-                  className="pl-8 w-full sm:w-[300px]"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+      {filtersVisible && (
+        <Card>
+          <CardContent className="pt-6">
+            <DocumentFilters
+              categories={categories}
+              clients={clients}
+              onFilterChange={handleFilterChange}
+            />
+          </CardContent>
+        </Card>
+      )}
+      
+      <Tabs 
+        defaultValue="all" 
+        value={currentTab}
+        onValueChange={(value) => setCurrentTab(value as 'all' | 'active' | 'archived')}
+        className="w-full"
+      >
+        <TabsList className="grid w-full grid-cols-3 max-w-md">
+          <TabsTrigger value="all">Todos</TabsTrigger>
+          <TabsTrigger value="active">Ativos</TabsTrigger>
+          <TabsTrigger value="archived">Arquivados</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="all" className="mt-4">
+          <Card>
+            <CardContent className="pt-6">
+              {loading ? (
+                <div className="flex justify-center items-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                </div>
+              ) : (
+                <DocumentsTable
+                  documents={documents}
+                  type="all"
+                  isLoading={loading}
+                  onApprove={handleApproveDocument}
+                  onReject={handleRejectDocument}
+                  onArchive={handleArchiveDocument}
+                  onRestore={handleRestoreDocument}
+                  onDelete={handleDeleteDocument}
+                  onView={handleViewDocument}
+                  onEdit={handleEditDocument}
+                  onShare={handleShareDocument}
+                  onDownload={handleDownloadDocument}
                 />
-              </div>
-              <Button>
-                <FileUp className="mr-2 h-4 w-4" />
-                Novo Documento
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <DocumentsTable
-            documents={filteredDocuments}
-            type="all"
-            isLoading={isLoading}
-            onArchive={handleArchive}
-            onView={handleView}
-            onEdit={handleEdit}
-            onShare={handleShare}
-            onDownload={handleDownload}
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="active" className="mt-4">
+          <Card>
+            <CardContent className="pt-6">
+              {loading ? (
+                <div className="flex justify-center items-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                </div>
+              ) : (
+                <DocumentsTable
+                  documents={documents}
+                  type="all"
+                  isLoading={loading}
+                  onApprove={handleApproveDocument}
+                  onReject={handleRejectDocument}
+                  onArchive={handleArchiveDocument}
+                  onView={handleViewDocument}
+                  onEdit={handleEditDocument}
+                  onShare={handleShareDocument}
+                  onDownload={handleDownloadDocument}
+                />
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="archived" className="mt-4">
+          <Card>
+            <CardContent className="pt-6">
+              {loading ? (
+                <div className="flex justify-center items-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                </div>
+              ) : (
+                <DocumentsTable
+                  documents={documents}
+                  type="archived"
+                  isLoading={loading}
+                  onRestore={handleRestoreDocument}
+                  onDelete={handleDeleteDocument}
+                  onView={handleViewDocument}
+                  onDownload={handleDownloadDocument}
+                />
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+      
+      <Dialog open={uploaderOpen} onOpenChange={setUploaderOpen}>
+        <DialogContent className="sm:max-w-3xl">
+          <DocumentUploadForm 
+            categories={categories}
+            clients={clients}
+            onUploadComplete={handleUploadComplete}
+            onCancel={() => setUploaderOpen(false)}
           />
-        </CardContent>
-      </Card>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
