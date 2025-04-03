@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import DocumentsTable from '@/components/admin/documents/DocumentsTable';
-import { getDocuments, approveDocument, rejectDocument } from '@/modules/admin/documents/api/documentsService';
+import { getDocuments, approveDocument, rejectDocument } from '@/modules/admin/documents/api';
 import { Search, AlertTriangle } from 'lucide-react';
 
 const PendingDocuments = () => {

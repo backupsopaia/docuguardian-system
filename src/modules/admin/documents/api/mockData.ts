@@ -1,7 +1,7 @@
 
-import { Document } from '../types/documents';
+import { Document, DocumentStatus } from './types';
 
-// Dados simulados para desenvolvimento e testes
+// Mock data - used as fallback when API is not available
 export const MOCK_DOCUMENTS: Document[] = [
   {
     id: 'DOC-2023-001',
@@ -14,10 +14,6 @@ export const MOCK_DOCUMENTS: Document[] = [
     department: 'TI',
     size: 2450000,
     version: '1.2',
-    tags: ['segurança', 'política', 'ti'],
-    description: 'Documento que estabelece as diretrizes de segurança da informação da empresa.',
-    isShared: true,
-    sharedWith: ['Maria Santos', 'Carlos Oliveira']
   },
   {
     id: 'DOC-2023-002',
@@ -30,8 +26,6 @@ export const MOCK_DOCUMENTS: Document[] = [
     department: 'RH',
     size: 1830000,
     version: '2.0',
-    tags: ['rh', 'onboarding', 'procedimentos'],
-    description: 'Guia para integração de novos colaboradores.'
   },
   {
     id: 'DOC-2023-003',
@@ -44,8 +38,6 @@ export const MOCK_DOCUMENTS: Document[] = [
     department: 'Financeiro',
     size: 3750000,
     version: '1.0',
-    tags: ['financeiro', 'relatório', 'trimestral'],
-    description: 'Relatório financeiro do segundo trimestre de 2023.'
   },
   {
     id: 'DOC-2023-004',
@@ -58,10 +50,6 @@ export const MOCK_DOCUMENTS: Document[] = [
     department: 'Jurídico',
     size: 1250000,
     version: '1.3',
-    tags: ['contrato', 'jurídico', 'serviços'],
-    description: 'Modelo de contrato para prestação de serviços.',
-    isShared: true,
-    sharedWith: ['Pedro Almeida']
   },
   {
     id: 'DOC-2023-005',
@@ -74,9 +62,6 @@ export const MOCK_DOCUMENTS: Document[] = [
     department: 'Marketing',
     size: 8900000,
     version: '2.1',
-    tags: ['marketing', 'branding', 'design'],
-    description: 'Guia completo de identidade visual da empresa.',
-    isStarred: true
   },
   {
     id: 'DOC-2023-006',
@@ -89,8 +74,6 @@ export const MOCK_DOCUMENTS: Document[] = [
     department: 'Marketing',
     size: 4200000,
     version: '1.0',
-    tags: ['marketing', 'planejamento', '2023'],
-    description: 'Plano estratégico de marketing para o ano de 2023.'
   },
   {
     id: 'DOC-2023-007',
@@ -103,8 +86,6 @@ export const MOCK_DOCUMENTS: Document[] = [
     department: 'Operações',
     size: 2100000,
     version: '3.2',
-    tags: ['emergência', 'procedimentos', 'segurança'],
-    description: 'Documento com os procedimentos de emergência e evacuação.'
   },
   {
     id: 'DOC-2023-008',
@@ -117,8 +98,6 @@ export const MOCK_DOCUMENTS: Document[] = [
     department: 'Compliance',
     size: 5600000,
     version: '1.0',
-    tags: ['auditoria', 'compliance', 'relatório'],
-    description: 'Relatório da auditoria interna realizada em julho de 2023.'
   },
   {
     id: 'DOC-2023-009',
@@ -131,8 +110,6 @@ export const MOCK_DOCUMENTS: Document[] = [
     department: 'TI',
     size: 7300000,
     version: '2.5',
-    tags: ['manual', 'sistema', 'usuário'],
-    description: 'Manual de utilização do sistema interno da empresa.'
   },
   {
     id: 'DOC-2023-010',
@@ -145,78 +122,5 @@ export const MOCK_DOCUMENTS: Document[] = [
     department: 'Comercial',
     size: 3100000,
     version: '1.1',
-    tags: ['proposta', 'comercial', 'projeto'],
-    description: 'Proposta comercial para o cliente XYZ referente ao Projeto X.',
-    isStarred: true
   },
-  {
-    id: 'DOC-2023-011',
-    name: 'Orçamento Q3 2023',
-    category: 'Orçamentos',
-    status: 'approved',
-    createdAt: '2023-06-25T11:20:00Z',
-    updatedAt: '2023-06-30T09:40:00Z',
-    createdBy: 'Roberto Dias',
-    department: 'Financeiro',
-    size: 2800000,
-    version: '1.0',
-    tags: ['orçamento', 'financeiro', 'trimestral'],
-    description: 'Planejamento orçamentário para o terceiro trimestre de 2023.'
-  },
-  {
-    id: 'DOC-2023-012',
-    name: 'Acordo de Confidencialidade',
-    category: 'Contratos',
-    status: 'approved',
-    createdAt: '2023-07-12T14:30:00Z',
-    updatedAt: '2023-07-15T10:15:00Z',
-    createdBy: 'Mariana Costa',
-    department: 'Jurídico',
-    size: 950000,
-    version: '2.1',
-    tags: ['nda', 'confidencialidade', 'jurídico'],
-    description: 'Modelo de acordo de confidencialidade padrão da empresa.'
-  },
-  {
-    id: 'DOC-2023-013',
-    name: 'Plano de Implementação ERP',
-    category: 'Planos',
-    status: 'pending',
-    createdAt: '2023-08-05T13:10:00Z',
-    updatedAt: '2023-08-05T13:10:00Z',
-    createdBy: 'Daniel Rocha',
-    department: 'TI',
-    size: 4500000,
-    version: '1.0',
-    tags: ['erp', 'implementação', 'projeto'],
-    description: 'Plano detalhado para implementação do novo sistema ERP.'
-  },
-  {
-    id: 'DOC-2023-014',
-    name: 'Relatório de Sustentabilidade',
-    category: 'Relatórios',
-    status: 'approved',
-    createdAt: '2023-05-10T09:45:00Z',
-    updatedAt: '2023-05-12T15:20:00Z',
-    createdBy: 'Julia Martins',
-    department: 'Sustentabilidade',
-    size: 6700000,
-    version: '1.2',
-    tags: ['sustentabilidade', 'esg', 'relatório'],
-    description: 'Relatório anual de iniciativas de sustentabilidade da empresa.'
-  },
-  {
-    id: 'DOC-2023-015',
-    name: 'Política de Trabalho Remoto',
-    category: 'Políticas',
-    status: 'approved',
-    createdAt: '2023-03-05T16:30:00Z',
-    updatedAt: '2023-03-10T11:45:00Z',
-    createdBy: 'Carla Nunes',
-    department: 'RH',
-    size: 1850000,
-    version: '1.1',
-    tags: ['rh', 'remoto', 'política'],
-    description: 'Diretrizes para o trabalho remoto na empresa.'
-  }
 ];

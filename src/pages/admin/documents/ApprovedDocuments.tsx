@@ -4,7 +4,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import DocumentsTable from '@/components/admin/documents/DocumentsTable';
-import { getDocuments, archiveDocument } from '@/modules/admin/documents/api/documentsService';
+import { getDocuments, archiveDocument } from '@/modules/admin/documents/api';
 import { Search, CheckCircle } from 'lucide-react';
 
 const ApprovedDocuments = () => {

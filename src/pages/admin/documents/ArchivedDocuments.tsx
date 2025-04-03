@@ -14,7 +14,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import DocumentsTable from '@/components/admin/documents/DocumentsTable';
-import { getDocuments, restoreDocument, deleteDocument } from '@/modules/admin/documents/api/documentsService';
+import { getDocuments, restoreDocument, deleteDocument } from '@/modules/admin/documents/api';
 import { Search, Archive } from 'lucide-react';
 
 const ArchivedDocuments = () => {
